@@ -1,0 +1,27 @@
+{
+  "name": "qr-forge-pro",
+  "version": "1.0.0",
+  "description": "Free, unlimited QR code generator with persistent storage. Static codes that never expire. Logo overlay, custom dot styles, bulk generation, frame labels, and a full library system.",
+  "private": true,
+  "scripts": {
+    "dev": "npx serve public -l 3000",
+    "build": "echo 'Static site — no build step needed'",
+    "preview": "npx serve public -l 3000"
+  },
+  "keywords": [
+    "qr-code",
+    "qr-generator",
+    "static-qr",
+    "qr-code-generator",
+    "logo-overlay",
+    "bulk-qr",
+    "free"
+  ],
+  "author": "Desmond Baker Jr. (DB Creations LLC)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jackdog668/qr-forge-pro"
+  },
+  "homepage": "https://qr-forge-pro.vercel.app"
+}

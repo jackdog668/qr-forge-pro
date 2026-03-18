@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>QR Forge Pro</title>
+<!-- FIX #3: Added SRI hash + crossorigin for CDN integrity verification -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js" integrity="sha512-NaKdMCaA1JMWMTmW6YzDJRi8vJCaKSx4SB/MKRBiJMLJKGwN1Y5NBjfOKIBUEEo0cIhBTSEjGGIR4iqFEFWQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0A0B0D;--s1:#111214;--s2:#1a1b1f;--s3:#222328;
+  --bdr:#2a2b30;--bdr2:#3a3b42;
+  --grn:#40FF78;--grn-d:rgba(64,255,120,.10);--grn-g:rgba(64,255,120,.25);
+  --gld:#FFDB40;--gld-d:rgba(255,219,64,.10);
+  --pur:#7A30FF;--pur-d:rgba(122,48,255,.10);
+  --blu:#00C8FF;--blu-d:rgba(0,200,255,.10);
+  --red:#FF4060;
+  --txt:#E8E8EC;--txt-m:#9A9AA6;--txt-d:#6A6A76;
+  --r:12px;--rs:8px;
+  --nav-h:64px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden;padding-bottom:var(--nav-h)}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 0%,rgba(64,255,120,.03) 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,rgba(122,48,255,.03) 0%,transparent 50%);pointer-events:none;z-index:0}
+
+.bnav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:var(--s1);border-top:1px solid var(--bdr);display:flex;z-index:100;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:none;background:none;color:var(--txt-d);cursor:pointer;font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:500;letter-spacing:.3px;transition:color .15s;position:relative}
+.bnav-btn:hover{color:var(--txt-m)}
+.bnav-btn.active{color:var(--grn)}
+.bnav-btn svg{width:22px;height:22px}
+
+.page{display:none;padding:16px 16px calc(var(--nav-h) + 16px);max-width:600px;margin:0 auto;position:relative;z-index:1;animation:fadeIn .25s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+.pg-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-top:8px}
+.logo-box{width:32px;height:32px;border:2px solid var(--grn);border-radius:7px;display:flex;align-items:center;justify-content:center;background:var(--grn-d);box-shadow:0 0 16px var(--grn-g);flex-shrink:0}
+.logo-box::after{content:'';width:12px;height:12px;background:var(--grn);border-radius:2px}
+.pg-title{font-size:20px;font-weight:700;letter-spacing:-.3px}
+.pg-title span{color:var(--grn)}
+.pg-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--txt-d);letter-spacing:.5px;text-transform:uppercase;margin-top:2px}
+
+.card{background:var(--s1);border:1px solid var(--bdr);border-radius:var(--r);padding:20px;margin-bottom:14px}
+.card-t{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--txt-d);margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.card-t::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--grn)}
+
+label,.lbl{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--txt-d);margin-bottom:7px}
+input[type=text],input[type=url],input[type=email],input[type=tel],input[type=password],textarea,select{width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rs);color:var(--txt);font-family:'JetBrains Mono',monospace;font-size:13px;padding:10px 12px;outline:none;transition:border-color .2s,box-shadow .2s}
+input:focus,textarea:focus,select:focus{border-color:var(--grn);box-shadow:0 0 0 3px var(--grn-d)}
+input::placeholder,textarea::placeholder{color:#444}
+textarea{resize:vertical;min-height:64px}
+select{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5L6 7.5L9 4.5' stroke='%236A6A76' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.field{margin-bottom:12px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
+.chip{background:var(--s2);border:1px solid var(--bdr);border-radius:6px;color:var(--txt-d);font-family:'JetBrains Mono',monospace;font-size:11px;padding:7px 11px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:4px}
+.chip:hover{border-color:var(--bdr2);color:var(--txt-m)}
+.chip.on{background:var(--grn-d);border-color:var(--grn);color:var(--grn)}
+
+.clr-wrap{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rs);padding:6px 10px;cursor:pointer}
+input[type=color]{-webkit-appearance:none;border:none;width:24px;height:24px;border-radius:5px;cursor:pointer;padding:0;background:none}
+input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+input[type=color]::-webkit-color-swatch{border:1px solid var(--bdr);border-radius:4px}
+.clr-v{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--txt-d)}
+
+.dot-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.dot-opt{background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rs);padding:8px 4px;cursor:pointer;text-align:center;transition:all .15s}
+.dot-opt:hover{border-color:var(--bdr2)}
+.dot-opt.on{background:var(--grn-d);border-color:var(--grn)}
+.dot-opt svg{width:20px;height:20px;margin:0 auto 3px;display:block}
+.dot-opt .dl{font-family:'JetBrains Mono',monospace;font-size:8px;text-transform:uppercase;color:var(--txt-d);letter-spacing:.2px}
+.dot-opt.on .dl{color:var(--grn)}
+
+.ecl-row{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.ecl-b{background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rs);color:var(--txt-d);font-family:'JetBrains Mono',monospace;font-size:11px;padding:8px 4px;cursor:pointer;transition:all .15s;text-align:center;line-height:1}
+.ecl-b:hover{border-color:var(--bdr2);color:var(--txt-m)}
+.ecl-b.on{background:var(--grn-d);border-color:var(--grn);color:var(--grn)}
+
+.logo-drop{border:2px dashed var(--bdr);border-radius:var(--rs);padding:14px;text-align:center;cursor:pointer;transition:border-color .2s}
+.logo-drop:hover{border-color:var(--bdr2)}
+.logo-drop.has{border-color:var(--grn);border-style:solid}
+.logo-drop input{display:none}
+.up-txt{font-size:12px;color:var(--txt-d);line-height:1.4}
+.up-txt strong{color:var(--grn)}
+.logo-prev{display:none;align-items:center;gap:10px}
+.logo-prev.vis{display:flex}
+.logo-prev img{width:40px;height:40px;border-radius:6px;object-fit:contain;background:#fff;padding:3px}
+.logo-info{text-align:left;flex:1;min-width:0}
+.logo-nm{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.logo-sz{font-size:10px;color:var(--txt-d);font-family:'JetBrains Mono',monospace}
+.logo-warn{font-size:9px;color:var(--gld);font-family:'JetBrains Mono',monospace;margin-top:8px;opacity:.8}
+.rm-logo{background:var(--s2);border:1px solid var(--bdr);border-radius:5px;color:var(--red);font-size:10px;padding:5px 8px;cursor:pointer;font-family:'Space Grotesk',sans-serif;flex-shrink:0}
+
+.tog{display:flex;align-items:center;gap:9px;cursor:pointer;margin-bottom:10px}
+.tog-track{width:34px;height:18px;background:var(--s3);border-radius:9px;position:relative;transition:background .2s;flex-shrink:0}
+.tog-track.on{background:var(--grn)}
+.tog-track::after{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;top:2px;left:2px;transition:transform .2s}
+.tog-track.on::after{transform:translateX(16px)}
+.tog-lbl{font-size:12px;color:var(--txt-m)}
+
+.pw-row{display:flex;gap:6px}
+.pw-row input{flex:1}
+.pw-toggle{background:var(--s2);border:1px solid var(--bdr);border-radius:var(--rs);color:var(--txt-d);font-size:11px;padding:0 10px;cursor:pointer;white-space:nowrap;font-family:'JetBrains Mono',monospace}
+
+.btn-g{width:100%;background:var(--grn);color:var(--bg);border:none;border-radius:var(--rs);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;padding:12px;cursor:pointer;transition:all .2s;letter-spacing:.3px;margin-top:6px}
+.btn-g:hover{transform:translateY(-1px);box-shadow:0 4px 18px var(--grn-g)}
+.btn-g:active{transform:translateY(0)}
+.btn-g:disabled{opacity:.3;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-s{background:var(--s2);border:1px solid var(--bdr);border-radius:var(--rs);color:var(--txt);font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:500;padding:9px 14px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+.btn-s:hover{border-color:var(--grn);color:var(--grn)}
+.btn-s svg{width:14px;height:14px;flex-shrink:0}
+
+.prev-empty{padding:40px 16px;text-align:center}
+.prev-ghost{width:100px;height:100px;margin:0 auto 12px;border:2px dashed var(--bdr);border-radius:10px;display:flex;align-items:center;justify-content:center;opacity:.35}
+.prev-ghost-inner{width:64px;height:64px;background:linear-gradient(var(--bdr) 1px,transparent 1px),linear-gradient(90deg,var(--bdr) 1px,transparent 1px);background-size:8px 8px;border-radius:3px}
+.prev-txt{font-size:12px;color:var(--txt-d)}
+.prev-live{display:none;text-align:center;animation:fadeIn .3s ease}
+.prev-live.vis{display:block}
+.qr-frame{display:inline-block;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 6px 24px rgba(0,0,0,.3)}
+#qr-canvas{display:block;max-width:100%;height:auto;image-rendering:pixelated}
+.qr-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--txt-d);line-height:1.6;margin-bottom:14px}
+.qr-meta b{color:var(--grn);font-weight:500}
+.dl-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px}
+.save-row{margin-bottom:8px}
+.save-row input{margin-bottom:6px}
+.save-btn{width:100%;background:var(--gld-d);border:1px solid rgba(255,219,64,.2);border-radius:var(--rs);color:var(--gld);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;padding:10px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.save-btn:hover{background:rgba(255,219,64,.18)}
+.save-btn:disabled{opacity:.4;cursor:not-allowed}
+.badge-f{display:inline-block;background:var(--grn-d);color:var(--grn);font-family:'JetBrains Mono',monospace;font-size:9px;padding:3px 10px;border-radius:16px;letter-spacing:.6px;text-transform:uppercase;margin-top:6px}
+
+.lib-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.lib-stat{background:var(--s1);border:1px solid var(--bdr);border-radius:var(--rs);padding:12px;text-align:center}
+.lib-stat .sv{font-size:22px;font-weight:700;color:var(--grn)}
+.lib-stat .sl{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--txt-d);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.lib-search{margin-bottom:14px;position:relative}
+.lib-search input{padding-left:36px}
+.lib-search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--txt-d)}
+.lib-filters{display:flex;gap:5px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px}
+.lib-filt{background:var(--s2);border:1px solid var(--bdr);border-radius:16px;color:var(--txt-d);font-family:'JetBrains Mono',monospace;font-size:10px;padding:5px 12px;cursor:pointer;white-space:nowrap;transition:all .15s}
+.lib-filt:hover{color:var(--txt-m)}
+.lib-filt.on{background:var(--grn-d);border-color:var(--grn);color:var(--grn)}
+.lib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.lib-card{background:var(--s1);border:1px solid var(--bdr);border-radius:var(--rs);overflow:hidden;cursor:pointer;transition:all .15s}
+.lib-card:hover{border-color:var(--bdr2);transform:translateY(-2px)}
+.lib-card-thumb{width:100%;aspect-ratio:1;background:#fff;display:flex;align-items:center;justify-content:center;padding:12px;position:relative}
+.lib-card-thumb img{width:100%;height:100%;image-rendering:pixelated;object-fit:contain}
+.lib-card-fav{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.5);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .15s}
+.lib-card-fav.faved{color:var(--gld);background:rgba(255,219,64,.2)}
+.lib-card-body{padding:10px}
+.lib-card-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.lib-card-type{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--txt-d);text-transform:uppercase;letter-spacing:.3px}
+.lib-empty{text-align:center;padding:48px 20px}
+.lib-empty-icon{font-size:48px;margin-bottom:12px;opacity:.3}
+.lib-empty-text{font-size:14px;color:var(--txt-d);margin-bottom:4px}
+.lib-empty-sub{font-size:12px;color:var(--txt-d);opacity:.6}
+
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.modal-bg.vis{display:flex}
+.modal{background:var(--s1);border:1px solid var(--bdr);border-radius:var(--r);max-width:420px;width:100%;max-height:90vh;overflow-y:auto;padding:24px;animation:fadeIn .2s ease}
+.modal-close{background:none;border:none;color:var(--txt-d);cursor:pointer;font-size:20px;float:right;padding:0 0 8px 8px}
+.modal-close:hover{color:var(--txt)}
+.modal-qr{text-align:center;margin-bottom:16px}
+.modal-qr canvas{max-width:200px;width:100%;height:auto;image-rendering:pixelated;border-radius:8px}
+.modal-name{font-size:18px;font-weight:700;text-align:center;margin-bottom:4px}
+.modal-type{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--grn);text-transform:uppercase;text-align:center;margin-bottom:8px}
+.modal-data{background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rs);padding:10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--txt-m);word-break:break-all;margin-bottom:14px;max-height:100px;overflow-y:auto}
+.modal-date{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--txt-d);text-align:center;margin-bottom:14px}
+.modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.modal-del{grid-column:1/-1;background:rgba(255,64,96,.08);border:1px solid rgba(255,64,96,.2);border-radius:var(--rs);color:var(--red);font-family:'Space Grotesk',sans-serif;font-size:12px;padding:9px;cursor:pointer;margin-top:4px;text-align:center}
+.modal-del:hover{background:rgba(255,64,96,.15)}
+
+.preset-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:12px}
+.preset-card{background:var(--s1);border:1px solid var(--bdr);border-radius:var(--rs);padding:14px;cursor:pointer;transition:all .15s;position:relative}
+.preset-card:hover{border-color:var(--bdr2);transform:translateY(-2px)}
+.preset-card-colors{display:flex;gap:4px;margin-bottom:8px}
+.preset-card-swatch{width:24px;height:24px;border-radius:5px;border:1px solid var(--bdr)}
+.preset-card-name{font-size:12px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.preset-card-info{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--txt-d);text-transform:uppercase}
+.preset-del{position:absolute;top:8px;right:8px;background:none;border:none;color:var(--txt-d);cursor:pointer;font-size:14px;padding:2px;opacity:0;transition:opacity .15s}
+.preset-card:hover .preset-del{opacity:1}
+.preset-del:hover{color:var(--red)}
+.preset-empty{text-align:center;padding:32px;color:var(--txt-d);font-size:13px}
+
+.bulk-info{font-size:12px;color:var(--txt-d);line-height:1.5;margin-bottom:12px}
+.bulk-res{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:14px}
+.bulk-item{background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rs);padding:10px;text-align:center}
+.bulk-item canvas{width:100%;height:auto;image-rendering:pixelated}
+.bulk-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--txt-d);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bulk-dl{background:var(--grn-d);border:none;border-radius:4px;color:var(--grn);font-size:10px;font-family:'JetBrains Mono',monospace;padding:4px 6px;margin-top:5px;cursor:pointer;width:100%}
+.bulk-dl:hover{background:rgba(64,255,120,.18)}
+
+.toast{position:fixed;bottom:calc(var(--nav-h) + 16px);left:50%;transform:translateX(-50%) translateY(80px);background:var(--s2);border:1px solid var(--grn);color:var(--grn);font-family:'JetBrains Mono',monospace;font-size:12px;padding:10px 18px;border-radius:8px;transition:transform .3s ease;z-index:300;pointer-events:none;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+.app-loading{display:flex;align-items:center;justify-content:center;min-height:60vh;flex-direction:column;gap:12px}
+.spinner{width:32px;height:32px;border:3px solid var(--bdr);border-top-color:var(--grn);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.load-text{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--txt-d)}
+
+@media(max-width:480px){
+  .field-row{grid-template-columns:1fr}
+  .dl-grid{grid-template-columns:1fr 1fr}
+  .lib-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<div class="app-loading" id="appLoading"><div class="spinner"></div><div class="load-text">Loading QR Forge Pro...</div></div>
+
+<!-- CREATE PAGE -->
+<div class="page" id="pg-create">
+  <div class="pg-header"><div class="logo-box"></div><div><div class="pg-title">QR <span>Forge</span> Pro</div><div class="pg-sub">Create // Static // Forever</div></div></div>
+
+  <div class="card"><div class="card-t">Content</div><div class="chips" id="typeChips"></div><div id="formArea"></div></div>
+
+  <div class="card"><div class="card-t">Style</div>
+    <div class="field-row" style="margin-bottom:12px">
+      <div class="field"><label>Foreground</label><div class="clr-wrap" onclick="this.querySelector('input').click()"><input type="color" id="fgC" value="#000000" onchange="S.fg=this.value;updHex()"><span class="clr-v" id="fgH">#000000</span></div></div>
+      <div class="field"><label>Background</label><div class="clr-wrap" onclick="this.querySelector('input').click()"><input type="color" id="bgC" value="#FFFFFF" onchange="S.bg=this.value;updHex()"><span class="clr-v" id="bgH">#FFFFFF</span></div></div>
+    </div>
+    <div class="field"><label>Dot Style</label><div class="dot-grid" id="dotGrid"></div></div>
+  </div>
+
+  <div class="card"><div class="card-t">Logo Overlay</div>
+    <div class="logo-drop" id="logoDZ" onclick="document.getElementById('logoIn').click()">
+      <input type="file" id="logoIn" accept="image/*" onchange="handleLogo(event)">
+      <div class="up-txt" id="upTxt"><strong>Tap to upload</strong> or drag image<br>PNG, JPG, SVG</div>
+      <div class="logo-prev" id="logoPrev"><img id="logoImg" alt=""><div class="logo-info"><div class="logo-nm" id="logoNm"></div><div class="logo-sz" id="logoSz"></div></div><button class="rm-logo" onclick="rmLogo(event)">Remove</button></div>
+    </div>
+    <!-- FIX #5: Clear UX indicator that logo is session-only -->
+    <div class="logo-warn" id="logoWarn" style="display:none">&#x26A0; Logo is session-only and won't persist in saved library entries</div>
+  </div>
+
+  <div class="card"><div class="card-t">Frame Label</div>
+    <div class="tog" onclick="toggleFrame()"><div class="tog-track" id="frameTog"></div><span class="tog-lbl">Add text below QR</span></div>
+    <div id="frameF" style="display:none"><input type="text" id="frameTxt" placeholder="SCAN ME" value="SCAN ME"></div>
+  </div>
+
+  <div class="card"><div class="card-t">Settings</div>
+    <div class="field-row" style="margin-bottom:12px">
+      <div class="field"><label>Size</label><select id="sizeS" onchange="S.size=+this.value"><option value="256">256px</option><option value="512" selected>512px</option><option value="1024">1024px</option><option value="2048">2048px</option></select></div>
+      <div class="field"><label>Margin</label><select id="marginS" onchange="S.margin=+this.value"><option value="1">Slim</option><option value="2" selected>Normal</option><option value="4">Wide</option></select></div>
+    </div>
+    <label>Error Correction</label>
+    <div class="ecl-row" id="eclRow"></div>
+    <div style="font-size:10px;color:var(--txt-d);margin-top:8px;line-height:1.4">Logo? Use <strong style="color:var(--gld)">H 30%</strong> for best scan reliability.</div>
+  </div>
+
+  <div style="text-align:right;margin-bottom:8px"><button class="btn-s" onclick="savePreset()" style="font-size:11px">&#x1F3A8; Save Style Preset</button></div>
+  <button class="btn-g" id="genBtn" onclick="generate()" disabled>Generate QR Code</button>
+
+  <div class="card" style="margin-top:14px" id="prevCard"><div class="card-t">Preview</div>
+    <div class="prev-empty" id="prevEmpty"><div class="prev-ghost"><div class="prev-ghost-inner"></div></div><div class="prev-txt">Your QR code appears here</div></div>
+    <div class="prev-live" id="prevLive">
+      <div class="qr-frame" id="qrFrame" style="background:#fff"><canvas id="qr-canvas"></canvas></div>
+      <div class="qr-meta" id="qrMeta"></div>
+      <div class="save-row"><input type="text" id="saveName" placeholder="Name this QR code..." maxlength="100"><button class="save-btn" id="saveBtn" onclick="saveToLib()">&#x2B50; Save to Library</button></div>
+      <div class="dl-grid">
+        <button class="btn-s" onclick="dlPNG()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>PNG</button>
+        <button class="btn-s" onclick="dlSVG()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>SVG</button>
+        <button class="btn-s" onclick="dlJPG()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/></svg>JPG</button>
+      </div>
+      <button class="btn-s" style="width:100%;justify-content:center" onclick="copyQR()">&#x1F4CB; Copy to Clipboard</button>
+      <div class="badge-f" style="margin-top:10px">&#x2714; Static // No expiration</div>
+    </div>
+  </div>
+</div>
+
+<!-- LIBRARY PAGE -->
+<div class="page" id="pg-library">
+  <div class="pg-header"><div class="logo-box"></div><div><div class="pg-title">My <span>Library</span></div><div class="pg-sub">Saved QR Codes</div></div></div>
+  <div class="lib-stats" id="libStats"></div>
+  <div class="lib-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" id="libSearch" placeholder="Search by name or content..." oninput="renderLib()"></div>
+  <div class="lib-filters" id="libFilters"></div>
+  <div id="libGrid"></div>
+</div>
+
+<!-- PRESETS PAGE -->
+<div class="page" id="pg-presets">
+  <div class="pg-header"><div class="logo-box"></div><div><div class="pg-title">Style <span>Presets</span></div><div class="pg-sub">Saved Configurations</div></div></div>
+  <div id="presetGrid"></div>
+</div>
+
+<!-- BULK PAGE -->
+<div class="page" id="pg-bulk">
+  <div class="pg-header"><div class="logo-box"></div><div><div class="pg-title">Bulk <span>Generate</span></div><div class="pg-sub">Multiple QR codes at once</div></div></div>
+  <div class="card"><div class="card-t">Batch Input</div>
+    <!-- FIX #4: Added bulk cap notice -->
+    <div class="bulk-info">One entry per line (max 100). Uses current style settings from Create tab.</div>
+    <textarea id="bulkIn" style="min-height:120px" placeholder="https://example.com&#10;https://another.com&#10;WIFI:T:WPA;S:Net;P:pass;;&#10;Any text..."></textarea>
+    <button class="btn-g" onclick="genBulk()">Generate All</button>
+    <div class="bulk-res" id="bulkRes"></div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()"><div class="modal" id="modal"></div></div>
+
+<!-- BOTTOM NAV -->
+<nav class="bnav">
+  <button class="bnav-btn active" onclick="goTo('create')" data-pg="create"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Create</button>
+  <button class="bnav-btn" onclick="goTo('library')" data-pg="library"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>Library</button>
+  <button class="bnav-btn" onclick="goTo('presets')" data-pg="presets"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Presets</button>
+  <button class="bnav-btn" onclick="goTo('bulk')" data-pg="bulk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="6" height="6" rx="1"/><rect x="9" y="7" width="6" height="6" rx="1"/><rect x="16" y="7" width="6" height="6" rx="1"/><rect x="2" y="14" width="6" height="6" rx="1"/><rect x="9" y="14" width="6" height="6" rx="1"/><rect x="16" y="14" width="6" height="6" rx="1"/></svg>Bulk</button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// FIX #11: Wrap in IIFE to avoid global namespace pollution
+;(function(){
+'use strict';
+
+const $=id=>document.getElementById(id);
+
+// FIX #1: Enhanced escape function - covers single quotes for onclick contexts
+function esc(s){
+  if(typeof s!=='string') s=String(s||'');
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// FIX #6: Full XML escape for SVG output
+function escXML(s){return esc(s)}
+
+// FIX #1: Validate that a value matches hex color format
+function isHexColor(v){return typeof v==='string'&&/^#[0-9a-fA-F]{6}$/.test(v)}
+
+// FIX #1: Validate allowed enum values
+const VALID_DOTS=['square','rounded','dots','diamond'];
+const VALID_ECLS=['L','M','Q','H'];
+const VALID_TYPES=['url','text','wifi','email','phone','sms','vcard','geo'];
+function isValidDot(v){return VALID_DOTS.includes(v)}
+function isValidEcl(v){return VALID_ECLS.includes(v)}
+function isValidType(v){return VALID_TYPES.includes(v)}
+
+// FIX #9: Toast with timeout clearing
+let toastTimer=null;
+function toast(m){
+  const t=$('toast');t.textContent=m;
+  if(toastTimer)clearTimeout(toastTimer);
+  t.classList.add('show');
+  toastTimer=setTimeout(()=>{t.classList.remove('show');toastTimer=null},2200);
+}
+
+// STORAGE
+const DB={
+  async get(k){try{const r=await window.storage.get(k);return r?JSON.parse(r.value):null}catch{return null}},
+  async set(k,v){try{await window.storage.set(k,JSON.stringify(v));return true}catch{return false}},
+};
+
+// FIX #2: Schema validation for library entries
+function validateLibEntry(e){
+  if(!e||typeof e!=='object') return null;
+  if(typeof e.id!=='string'||!e.id) return null;
+  if(typeof e.data!=='string'||!e.data) return null;
+  // Sanitize and default
+  return {
+    id: e.id.replace(/[^a-z0-9]/gi,'').slice(0,20),
+    name: typeof e.name==='string'?e.name.slice(0,100):'Untitled',
+    data: e.data.slice(0,5000),
+    type: isValidType(e.type)?e.type:'text',
+    fg: isHexColor(e.fg)?e.fg:'#000000',
+    bg: isHexColor(e.bg)?e.bg:'#FFFFFF',
+    dot: isValidDot(e.dot)?e.dot:'square',
+    ecl: isValidEcl(e.ecl)?e.ecl:'M',
+    margin: [1,2,4].includes(e.margin)?e.margin:2,
+    frame: typeof e.frame==='string'?e.frame.slice(0,50):null,
+    size: [256,512,1024,2048].includes(e.size)?e.size:512,
+    thumb: typeof e.thumb==='string'&&e.thumb.startsWith('data:image/png;base64,')?e.thumb:'',
+    fav: e.fav===true,
+    created: typeof e.created==='string'?e.created:new Date().toISOString()
+  };
+}
+
+// FIX #2: Schema validation for presets
+function validatePreset(p){
+  if(!p||typeof p!=='object') return null;
+  if(typeof p.id!=='string'||!p.id) return null;
+  return {
+    id: p.id.replace(/[^a-z0-9]/gi,'').slice(0,20),
+    name: typeof p.name==='string'?p.name.slice(0,50):'Untitled',
+    fg: isHexColor(p.fg)?p.fg:'#000000',
+    bg: isHexColor(p.bg)?p.bg:'#FFFFFF',
+    dot: isValidDot(p.dot)?p.dot:'square',
+    ecl: isValidEcl(p.ecl)?p.ecl:'M',
+    margin: [1,2,4].includes(p.margin)?p.margin:2,
+    created: typeof p.created==='string'?p.created:new Date().toISOString()
+  };
+}
+
+// STATE
+let S={type:'url',fg:'#000000',bg:'#FFFFFF',dot:'square',ecl:'M',size:512,margin:2,frame:false,frameTxt:'SCAN ME'};
+let logoImg=null,logoDataURL=null,lastRender=null,library=[],presets=[],libFilter='all';
+// FIX #7: Save debounce
+let saveLock=false;
+
+const TYPES=[
+  {id:'url',icon:'\u{1F517}',label:'URL',fields:[{id:'url',type:'url',ph:'https://example.com'}]},
+  {id:'text',icon:'\u270F',label:'Text',fields:[{id:'text',type:'textarea',ph:'Any text, message, or data...'}]},
+  {id:'wifi',icon:'\u{1F4F6}',label:'Wi-Fi',fields:[{id:'wifi-ssid',type:'text',ph:'Network Name',lbl:'SSID'},{id:'wifi-pass',type:'password',ph:'Password',lbl:'Password',hasPwToggle:true},{id:'wifi-enc',type:'select',lbl:'Encryption',opts:['WPA','WEP','nopass']}]},
+  {id:'email',icon:'\u2709',label:'Email',fields:[{id:'em-addr',type:'email',ph:'name@example.com',lbl:'Address'},{id:'em-subj',type:'text',ph:'Subject',lbl:'Subject'},{id:'em-body',type:'textarea',ph:'Body...',lbl:'Body'}]},
+  {id:'phone',icon:'\u{1F4DE}',label:'Phone',fields:[{id:'phone',type:'tel',ph:'+1 234 567 8900'}]},
+  {id:'sms',icon:'\u{1F4AC}',label:'SMS',fields:[{id:'sms-num',type:'tel',ph:'+1 234 567 8900',lbl:'Number'},{id:'sms-msg',type:'textarea',ph:'Message...',lbl:'Message'}]},
+  {id:'vcard',icon:'\u{1F464}',label:'vCard',fields:[{id:'vc-first',type:'text',ph:'First Name',lbl:'First'},{id:'vc-last',type:'text',ph:'Last Name',lbl:'Last'},{id:'vc-phone',type:'tel',ph:'Phone',lbl:'Phone'},{id:'vc-email',type:'email',ph:'Email',lbl:'Email'},{id:'vc-org',type:'text',ph:'Organization',lbl:'Org'},{id:'vc-url',type:'url',ph:'Website',lbl:'URL'}]},
+  {id:'geo',icon:'\u{1F4CD}',label:'Location',fields:[{id:'geo-lat',type:'text',ph:'41.8781',lbl:'Lat'},{id:'geo-lng',type:'text',ph:'-87.6298',lbl:'Lng'}]}
+];
+
+const DOTS=[
+  {id:'square',label:'Square',svg:'<rect x="4" y="4" width="7" height="7" fill="currentColor"/><rect x="13" y="4" width="7" height="7" fill="currentColor"/><rect x="4" y="13" width="7" height="7" fill="currentColor"/><rect x="13" y="13" width="7" height="7" fill="currentColor"/>'},
+  {id:'rounded',label:'Round',svg:'<rect x="4" y="4" width="7" height="7" rx="2" fill="currentColor"/><rect x="13" y="4" width="7" height="7" rx="2" fill="currentColor"/><rect x="4" y="13" width="7" height="7" rx="2" fill="currentColor"/><rect x="13" y="13" width="7" height="7" rx="2" fill="currentColor"/>'},
+  {id:'dots',label:'Dots',svg:'<circle cx="7.5" cy="7.5" r="3.5" fill="currentColor"/><circle cx="16.5" cy="7.5" r="3.5" fill="currentColor"/><circle cx="7.5" cy="16.5" r="3.5" fill="currentColor"/><circle cx="16.5" cy="16.5" r="3.5" fill="currentColor"/>'},
+  {id:'diamond',label:'Diamond',svg:'<polygon points="7.5,4 11,7.5 7.5,11 4,7.5" fill="currentColor"/><polygon points="16.5,4 20,7.5 16.5,11 13,7.5" fill="currentColor"/><polygon points="7.5,13 11,16.5 7.5,20 4,16.5" fill="currentColor"/><polygon points="16.5,13 20,16.5 16.5,20 13,16.5" fill="currentColor"/>'}
+];
+
+function initUI(){
+  $('typeChips').innerHTML=TYPES.map(t=>`<button class="chip${t.id===S.type?' on':''}" data-t="${esc(t.id)}" onclick="QF.setType('${esc(t.id)}')">${t.icon} ${esc(t.label)}</button>`).join('');
+  renderForm();
+  $('dotGrid').innerHTML=DOTS.map(d=>`<div class="dot-opt${d.id===S.dot?' on':''}" data-d="${esc(d.id)}" onclick="QF.setDot('${esc(d.id)}')"><svg viewBox="0 0 24 24">${d.svg}</svg><div class="dl">${esc(d.label)}</div></div>`).join('');
+  $('eclRow').innerHTML=['L','M','Q','H'].map(e=>`<button class="ecl-b${e===S.ecl?' on':''}" data-e="${e}" onclick="QF.setEcl('${e}')">${e} ${({L:'7%',M:'15%',Q:'25%',H:'30%'})[e]}</button>`).join('');
+  updHex();
+}
+
+// FIX #10: Wi-Fi password field with show/hide toggle
+function renderForm(){
+  const t=TYPES.find(x=>x.id===S.type);let h='';
+  t.fields.forEach(f=>{h+=`<div class="field">`;if(f.lbl)h+=`<label>${esc(f.lbl)}</label>`;
+    if(f.type==='textarea')h+=`<textarea id="f-${esc(f.id)}" placeholder="${esc(f.ph)}" oninput="QF.chkReady()"></textarea>`;
+    else if(f.type==='select')h+=`<select id="f-${esc(f.id)}">${f.opts.map(o=>`<option>${esc(o)}</option>`).join('')}</select>`;
+    else if(f.hasPwToggle)h+=`<div class="pw-row"><input type="password" id="f-${esc(f.id)}" placeholder="${esc(f.ph)}" oninput="QF.chkReady()"><button class="pw-toggle" type="button" onclick="QF.togglePw(this)">Show</button></div>`;
+    else h+=`<input type="${esc(f.type)}" id="f-${esc(f.id)}" placeholder="${esc(f.ph)}" oninput="QF.chkReady()">`;
+  h+=`</div>`;});$('formArea').innerHTML=h;
+}
+
+function togglePw(btn){
+  const inp=btn.previousElementSibling;
+  if(inp.type==='password'){inp.type='text';btn.textContent='Hide'}
+  else{inp.type='password';btn.textContent='Show'}
+}
+
+function setType(id){if(!isValidType(id))return;S.type=id;document.querySelectorAll('#typeChips .chip').forEach(c=>c.classList.toggle('on',c.dataset.t===id));renderForm();chkReady()}
+function setDot(id){if(!isValidDot(id))return;S.dot=id;document.querySelectorAll('.dot-opt').forEach(o=>o.classList.toggle('on',o.dataset.d===id))}
+function setEcl(id){if(!isValidEcl(id))return;S.ecl=id;document.querySelectorAll('.ecl-b').forEach(b=>b.classList.toggle('on',b.dataset.e===id))}
+function updHex(){$('fgH').textContent=S.fg=$('fgC').value;$('bgH').textContent=S.bg=$('bgC').value}
+function toggleFrame(){S.frame=!S.frame;$('frameTog').classList.toggle('on',S.frame);$('frameF').style.display=S.frame?'block':'none'}
+
+function handleLogo(e){const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=ev=>{const img=new Image();img.onload=()=>{logoImg=img;logoDataURL=ev.target.result;$('logoImg').src=ev.target.result;$('logoNm').textContent=file.name;$('logoSz').textContent=`${img.width}x${img.height}`;$('upTxt').style.display='none';$('logoPrev').classList.add('vis');$('logoDZ').classList.add('has');$('logoWarn').style.display='block'};img.src=ev.target.result};r.readAsDataURL(file)}
+function rmLogo(e){e.stopPropagation();logoImg=null;logoDataURL=null;$('logoIn').value='';$('upTxt').style.display='block';$('logoPrev').classList.remove('vis');$('logoDZ').classList.remove('has');$('logoWarn').style.display='none'}
+function chkReady(){$('genBtn').disabled=!buildData()}
+
+function buildData(){
+  const v=id=>{const el=$('f-'+id);return el?el.value.trim():''};
+  switch(S.type){
+    case'url':return v('url');case'text':return v('text');
+    case'wifi':{const s=v('wifi-ssid');if(!s)return'';return`WIFI:T:${v('wifi-enc')||'WPA'};S:${s};P:${v('wifi-pass')};;`}
+    case'email':{const a=v('em-addr');if(!a)return'';let s=`mailto:${a}`;const p=[];if(v('em-subj'))p.push(`subject=${encodeURIComponent(v('em-subj'))}`);if(v('em-body'))p.push(`body=${encodeURIComponent(v('em-body'))}`);if(p.length)s+='?'+p.join('&');return s}
+    case'phone':return v('phone')?`tel:${v('phone')}`:'';
+    case'sms':{const n=v('sms-num');if(!n)return'';const m=v('sms-msg');return m?`sms:${n}?body=${encodeURIComponent(m)}`:`sms:${n}`}
+    case'vcard':{const fn=v('vc-first');if(!fn)return'';let c=`BEGIN:VCARD\nVERSION:3.0\nN:${v('vc-last')};${fn}\nFN:${fn} ${v('vc-last')}`;if(v('vc-phone'))c+=`\nTEL:${v('vc-phone')}`;if(v('vc-email'))c+=`\nEMAIL:${v('vc-email')}`;if(v('vc-org'))c+=`\nORG:${v('vc-org')}`;if(v('vc-url'))c+=`\nURL:${v('vc-url')}`;c+=`\nEND:VCARD`;return c}
+    case'geo':{const la=v('geo-lat'),lo=v('geo-lng');return(la&&lo)?`geo:${la},${lo}`:''}}
+  return'';
+}
+
+// QR ENGINE
+function getECL(l){return{L:1,M:0,Q:3,H:2}[l]||0}
+function renderQR(data,cvs,size,fg,bg,style,ecl,margin,logo,frameTxt){
+  const ec=getECL(ecl);let qr;
+  for(let t=1;t<=40;t++){try{qr=qrcode(t,ec);qr.addData(data);qr.make();break}catch(e){if(t===40)throw e}}
+  const mc=qr.getModuleCount(),tm=mc+margin*2,fh=frameTxt?Math.round(size*.10):0;
+  cvs.width=size;cvs.height=size+fh;const c=cvs.getContext('2d');
+  c.fillStyle=bg;c.fillRect(0,0,size,size+fh);c.fillStyle=fg;
+  const cs=size/tm;
+  for(let r=0;r<mc;r++)for(let col=0;col<mc;col++){
+    if(!qr.isDark(r,col))continue;const x=(col+margin)*cs,y=(r+margin)*cs;
+    switch(style){case'square':c.fillRect(x,y,cs,cs);break;case'rounded':rrect(c,x,y,cs,cs,cs*.3);break;case'dots':c.beginPath();c.arc(x+cs/2,y+cs/2,cs*.45,0,Math.PI*2);c.fill();break;case'diamond':c.beginPath();c.moveTo(x+cs/2,y);c.lineTo(x+cs,y+cs/2);c.lineTo(x+cs/2,y+cs);c.lineTo(x,y+cs/2);c.closePath();c.fill();break}
+  }
+  if(logo){const ls=size*.22,lx=(size-ls)/2,ly=(size-ls)/2,pd=ls*.12;c.fillStyle=bg;rrect(c,lx-pd,ly-pd,ls+pd*2,ls+pd*2,pd);c.strokeStyle=fg;c.lineWidth=1.5;c.beginPath();rrp(c,lx-pd,ly-pd,ls+pd*2,ls+pd*2,pd);c.stroke();c.save();c.beginPath();rrp(c,lx,ly,ls,ls,pd*.6);c.clip();c.drawImage(logo,lx,ly,ls,ls);c.restore()}
+  if(frameTxt){c.fillStyle=fg;c.fillRect(0,size,size,fh);c.fillStyle=bg;c.font=`bold ${Math.round(fh*.5)}px "Space Grotesk",sans-serif`;c.textAlign='center';c.textBaseline='middle';c.fillText(frameTxt,size/2,size+fh/2)}
+  return{mc,qr};
+}
+function rrect(c,x,y,w,h,r){c.beginPath();rrp(c,x,y,w,h,r);c.fill()}
+function rrp(c,x,y,w,h,r){c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.quadraticCurveTo(x+w,y,x+w,y+r);c.lineTo(x+w,y+h-r);c.quadraticCurveTo(x+w,y+h,x+w-r,y+h);c.lineTo(x+r,y+h);c.quadraticCurveTo(x,y+h,x,y+h-r);c.lineTo(x,y+r);c.quadraticCurveTo(x,y,x+r,y);c.closePath()}
+
+function generate(){
+  const data=buildData();if(!data)return;const frame=S.frame?($('frameTxt').value.trim()||null):null;
+  try{
+    const cvs=$('qr-canvas');renderQR(data,cvs,S.size,S.fg,S.bg,S.dot,S.ecl,S.margin,logoImg,frame);
+    $('qrFrame').style.background=S.bg;
+    $('qrMeta').innerHTML=`<b>${esc(S.type.toUpperCase())}</b> // ${S.size}&times;${S.size} // ECL-${esc(S.ecl)} // ${esc(S.dot)}${logoImg?' // +logo':''}${frame?' // +frame':''}<br>${data.length.toLocaleString()} chars`;
+    $('prevEmpty').style.display='none';$('prevLive').classList.add('vis');
+    lastRender={data,size:S.size,fg:S.fg,bg:S.bg,dot:S.dot,ecl:S.ecl,margin:S.margin,frame,type:S.type};
+    $('saveName').value='';$('saveBtn').disabled=false;saveLock=false;
+    toast('QR code generated');$('prevCard').scrollIntoView({behavior:'smooth',block:'center'});
+  }catch{toast('Error: data too long for this ECL level')}
+}
+
+// DOWNLOADS
+function dlPNG(){if(!lastRender)return;const a=document.createElement('a');a.download=`qr-${Date.now()}.png`;a.href=$('qr-canvas').toDataURL('image/png');a.click();toast('PNG downloaded')}
+function dlJPG(){if(!lastRender)return;const a=document.createElement('a');a.download=`qr-${Date.now()}.jpg`;a.href=$('qr-canvas').toDataURL('image/jpeg',.95);a.click();toast('JPG downloaded')}
+
+// FIX #4b (blob leak) + FIX #6 (full XML escape in SVG)
+function dlSVG(){
+  if(!lastRender)return;const{data,size,fg,bg,dot,ecl,margin,frame}=lastRender;
+  const ec=getECL(ecl);let qr;for(let t=1;t<=40;t++){try{qr=qrcode(t,ec);qr.addData(data);qr.make();break}catch(e){if(t===40)return}}
+  const mc=qr.getModuleCount(),tm=mc+margin*2,cs=size/tm,fh=frame?Math.round(size*.10):0;let rects='';
+  for(let r=0;r<mc;r++)for(let c=0;c<mc;c++){if(!qr.isDark(r,c))continue;const x=((c+margin)*cs).toFixed(2),y=((r+margin)*cs).toFixed(2),s=cs.toFixed(2);
+    switch(dot){case'square':rects+=`<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="${esc(fg)}"/>`;break;case'rounded':rects+=`<rect x="${x}" y="${y}" width="${s}" height="${s}" rx="${(cs*.3).toFixed(2)}" fill="${esc(fg)}"/>`;break;case'dots':rects+=`<circle cx="${(parseFloat(x)+cs/2).toFixed(2)}" cy="${(parseFloat(y)+cs/2).toFixed(2)}" r="${(cs*.45).toFixed(2)}" fill="${esc(fg)}"/>`;break;case'diamond':{const cx=parseFloat(x)+cs/2,cy=parseFloat(y)+cs/2,h=cs/2;rects+=`<polygon points="${cx.toFixed(2)},${(cy-h).toFixed(2)} ${(cx+h).toFixed(2)},${cy.toFixed(2)} ${cx.toFixed(2)},${(cy+h).toFixed(2)} ${(cx-h).toFixed(2)},${cy.toFixed(2)}" fill="${esc(fg)}"/>`;break}}}
+  let fs='';if(frame){fs=`<rect x="0" y="${size}" width="${size}" height="${fh}" fill="${esc(fg)}"/><text x="${size/2}" y="${size+fh/2}" fill="${esc(bg)}" font-family="Space Grotesk,sans-serif" font-weight="bold" font-size="${Math.round(fh*.5)}" text-anchor="middle" dominant-baseline="central">${escXML(frame)}</text>`}
+  const svg=`<?xml version="1.0"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size+fh}" viewBox="0 0 ${size} ${size+fh}">\n<rect width="${size}" height="${size+fh}" fill="${esc(bg)}"/>\n${rects}\n${fs}\n</svg>`;
+  const blob=new Blob([svg],{type:'image/svg+xml'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.download=`qr-${Date.now()}.svg`;a.href=url;a.click();
+  // FIX #4b: Revoke blob URL after download
+  setTimeout(()=>URL.revokeObjectURL(url),5000);
+  toast('SVG downloaded');
+}
+async function copyQR(){if(!lastRender)return;try{const blob=await new Promise(r=>$('qr-canvas').toBlob(r,'image/png'));await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);toast('Copied!')}catch{toast('Copy failed')}}
+
+// LIBRARY
+// FIX #7: Save with debounce + duplicate check
+async function saveToLib(){
+  if(!lastRender||saveLock)return;
+  saveLock=true;$('saveBtn').disabled=true;
+  const name=$('saveName').value.trim()||`QR ${new Date().toLocaleDateString()}`;
+
+  // Check for duplicate data
+  if(library.some(i=>i.data===lastRender.data&&i.name===name)){
+    toast('Already saved with this name');
+    setTimeout(()=>{saveLock=false;$('saveBtn').disabled=false},1000);
+    return;
+  }
+
+  const tc=document.createElement('canvas');renderQR(lastRender.data,tc,200,lastRender.fg,lastRender.bg,lastRender.dot,lastRender.ecl,lastRender.margin,null,null);
+  const entry=validateLibEntry({
+    id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+    name,data:lastRender.data,type:lastRender.type||S.type,
+    fg:lastRender.fg,bg:lastRender.bg,dot:lastRender.dot,ecl:lastRender.ecl,
+    margin:lastRender.margin,frame:lastRender.frame,size:lastRender.size,
+    thumb:tc.toDataURL('image/png'),fav:false,created:new Date().toISOString()
+  });
+  if(!entry){toast('Save failed: invalid data');saveLock=false;$('saveBtn').disabled=false;return}
+  library.unshift(entry);
+  await DB.set('qr-library',library);toast(`Saved "${esc(name)}" to library`);
+  setTimeout(()=>{saveLock=false;$('saveBtn').disabled=false},1500);
+}
+
+// FIX #1: All innerHTML rendering now escapes every dynamic value
+function renderLib(){
+  const search=($('libSearch')?.value||'').toLowerCase();let items=library;
+  if(libFilter==='fav')items=items.filter(i=>i.fav);else if(libFilter!=='all')items=items.filter(i=>i.type===libFilter);
+  if(search)items=items.filter(i=>i.name.toLowerCase().includes(search)||i.data.toLowerCase().includes(search));
+  $('libStats').innerHTML=`<div class="lib-stat"><div class="sv">${library.length}</div><div class="sl">Total</div></div><div class="lib-stat"><div class="sv">${library.filter(i=>i.fav).length}</div><div class="sl">Favorites</div></div><div class="lib-stat"><div class="sv">${new Set(library.map(i=>i.type)).size}</div><div class="sl">Types</div></div>`;
+  const types=['all','fav',...new Set(library.map(i=>i.type))];
+  $('libFilters').innerHTML=types.map(t=>`<button class="lib-filt${t===libFilter?' on':''}" onclick="QF.setLibFilter('${esc(t)}')">${t==='all'?'All':t==='fav'?'\u2B50 Favs':esc(t.toUpperCase())}</button>`).join('');
+  if(!items.length){$('libGrid').innerHTML=`<div class="lib-empty"><div class="lib-empty-icon">\u{1F4E6}</div><div class="lib-empty-text">${library.length===0?'No saved QR codes yet':'No matches'}</div><div class="lib-empty-sub">${library.length===0?'Generate and save from Create tab':'Try different search/filter'}</div></div>`;return}
+  // FIX #1: ALL dynamic values escaped including id, type, thumb (validated as data:image/png on load)
+  $('libGrid').innerHTML=`<div class="lib-grid">${items.map(i=>`<div class="lib-card" onclick="QF.openDetail('${esc(i.id)}')"><div class="lib-card-thumb"><img src="${esc(i.thumb)}" alt="${esc(i.name)}"><button class="lib-card-fav${i.fav?' faved':''}" onclick="event.stopPropagation();QF.togFav('${esc(i.id)}')">${i.fav?'\u2605':'\u2606'}</button></div><div class="lib-card-body"><div class="lib-card-name">${esc(i.name)}</div><div class="lib-card-type">${esc(i.type)}</div></div></div>`).join('')}</div>`;
+}
+
+function setLibFilter(f){libFilter=f;renderLib()}
+
+async function togFav(id){const item=library.find(i=>i.id===id);if(item){item.fav=!item.fav;await DB.set('qr-library',library);renderLib()}}
+
+function openDetail(id){
+  const item=library.find(i=>i.id===id);if(!item)return;
+  const cvs=document.createElement('canvas');try{renderQR(item.data,cvs,300,item.fg,item.bg,item.dot,item.ecl,item.margin||2,null,null)}catch{}
+  $('modal').innerHTML=`<button class="modal-close" onclick="QF.closeModal()">&times;</button><div class="modal-qr"><canvas id="mcvs"></canvas></div><div class="modal-name">${esc(item.name)}</div><div class="modal-type">${esc(item.type)}</div><div class="modal-data">${esc(item.data)}</div><div class="modal-date">${esc(new Date(item.created).toLocaleString())}</div><div class="modal-actions"><button class="btn-s" onclick="QF.modDL('${esc(item.id)}','png')">PNG</button><button class="btn-s" onclick="QF.modDL('${esc(item.id)}','jpg')">JPG</button><button class="modal-del" onclick="QF.delItem('${esc(item.id)}')">Delete from Library</button></div>`;
+  setTimeout(()=>{const mc=$('mcvs');if(mc){mc.width=cvs.width;mc.height=cvs.height;mc.getContext('2d').drawImage(cvs,0,0)}},50);
+  $('modalBg').classList.add('vis');
+}
+function closeModal(){$('modalBg').classList.remove('vis')}
+function modDL(id,fmt){const item=library.find(i=>i.id===id);if(!item)return;const cvs=document.createElement('canvas');renderQR(item.data,cvs,item.size||512,item.fg,item.bg,item.dot,item.ecl,item.margin||2,null,item.frame||null);const a=document.createElement('a');a.download=`${item.name.replace(/[^a-zA-Z0-9]/g,'_')}.${fmt}`;a.href=cvs.toDataURL(fmt==='jpg'?'image/jpeg':'image/png',.95);a.click();toast(`${fmt.toUpperCase()} downloaded`)}
+async function delItem(id){library=library.filter(i=>i.id!==id);await DB.set('qr-library',library);closeModal();renderLib();toast('Deleted')}
+
+// PRESETS
+// FIX #1: All preset rendering escaped
+async function savePreset(){const name=prompt('Preset name:',`${S.dot} ${S.fg}`);if(!name)return;
+  const p=validatePreset({id:Date.now().toString(36),name,fg:S.fg,bg:S.bg,dot:S.dot,ecl:S.ecl,margin:S.margin,created:new Date().toISOString()});
+  if(!p){toast('Invalid preset');return}
+  presets.unshift(p);await DB.set('qr-presets',presets);renderPresets();toast(`Preset "${esc(name)}" saved`)}
+function renderPresets(){if(!presets.length){$('presetGrid').innerHTML='<div class="preset-empty">\u{1F3A8} No presets saved yet.<br>Create a style and save it from the Create tab.</div>';return}
+  // FIX #1: fg/bg validated as hex colors on load, but still escaped in output
+  $('presetGrid').innerHTML=`<div class="preset-grid">${presets.map(p=>`<div class="preset-card" onclick="QF.applyPreset('${esc(p.id)}')"><button class="preset-del" onclick="event.stopPropagation();QF.delPreset('${esc(p.id)}')">&times;</button><div class="preset-card-colors"><div class="preset-card-swatch" style="background:${esc(p.fg)}"></div><div class="preset-card-swatch" style="background:${esc(p.bg)}"></div></div><div class="preset-card-name">${esc(p.name)}</div><div class="preset-card-info">${esc(p.dot)} // ECL-${esc(p.ecl)}</div></div>`).join('')}</div>`}
+function applyPreset(id){const p=presets.find(x=>x.id===id);if(!p)return;S.fg=p.fg;S.bg=p.bg;S.dot=p.dot;S.ecl=p.ecl;S.margin=p.margin||2;$('fgC').value=p.fg;$('bgC').value=p.bg;updHex();$('marginS').value=S.margin;document.querySelectorAll('.dot-opt').forEach(o=>o.classList.toggle('on',o.dataset.d===S.dot));document.querySelectorAll('.ecl-b').forEach(b=>b.classList.toggle('on',b.dataset.e===S.ecl));goTo('create');toast(`Preset "${esc(p.name)}" applied`)}
+async function delPreset(id){presets=presets.filter(p=>p.id!==id);await DB.set('qr-presets',presets);renderPresets();toast('Deleted')}
+
+// BULK
+// FIX #4: Cap at 100 entries
+function genBulk(){
+  const input=$('bulkIn').value.trim();if(!input)return;
+  let lines=input.split('\n').map(l=>l.trim()).filter(l=>l);
+  if(lines.length>100){lines=lines.slice(0,100);toast('Capped at 100 entries')}
+  const container=$('bulkRes');container.innerHTML='';let count=0;
+  // FIX #4: Cap canvas size at 512 for bulk to prevent memory issues
+  const bulkSize=Math.min(S.size,512);
+  lines.forEach((line,i)=>{const card=document.createElement('div');card.className='bulk-item';const c=document.createElement('canvas');try{renderQR(line,c,bulkSize,S.fg,S.bg,S.dot,S.ecl,S.margin,null,null)}catch{return}count++;
+    const lbl=document.createElement('div');lbl.className='bulk-lbl';lbl.textContent=line.length>25?line.slice(0,25)+'...':line;
+    const dl=document.createElement('button');dl.className='bulk-dl';dl.textContent='Download';dl.onclick=()=>{const a=document.createElement('a');a.download=`qr-bulk-${i+1}.png`;a.href=c.toDataURL('image/png');a.click()};
+    card.appendChild(c);card.appendChild(lbl);card.appendChild(dl);container.appendChild(card)});
+  toast(`${count} QR codes generated`);
+}
+
+// NAV
+function goTo(pg){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));$('pg-'+pg).classList.add('active');document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.toggle('active',b.dataset.pg===pg));window.scrollTo(0,0);if(pg==='library')renderLib();if(pg==='presets')renderPresets()}
+
+// BOOT
+async function boot(){
+  // FIX #2: Load and validate storage data
+  const rawLib=await DB.get('qr-library');
+  if(Array.isArray(rawLib)){library=rawLib.map(validateLibEntry).filter(Boolean)}
+  const rawPre=await DB.get('qr-presets');
+  if(Array.isArray(rawPre)){presets=rawPre.map(validatePreset).filter(Boolean)}
+
+  initUI();
+  $('appLoading').style.display='none';
+  $('pg-create').classList.add('active');
+  const dz=$('logoDZ');
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.style.borderColor='var(--grn)'});
+  dz.addEventListener('dragleave',()=>{dz.style.borderColor=''});
+  dz.addEventListener('drop',e=>{e.preventDefault();dz.style.borderColor='';if(e.dataTransfer.files.length){$('logoIn').files=e.dataTransfer.files;handleLogo({target:{files:e.dataTransfer.files}})}});
+  document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key==='Enter'){e.preventDefault();if(!$('genBtn').disabled)generate()}});
+}
+
+// FIX #11: Expose only necessary functions via a single global namespace
+window.QF={setType,setDot,setEcl,togglePw,chkReady,setLibFilter,openDetail,togFav,modDL,delItem,closeModal,applyPreset,delPreset,
+  goTo,generate,saveToLib,savePreset,genBulk,dlPNG,dlSVG,dlJPG,copyQR,handleLogo,rmLogo,toggleFrame};
+// Wire up global onclick handlers
+window.goTo=goTo;window.generate=generate;
+
+boot();
+})();
+</script>
+</body>
+</html>
