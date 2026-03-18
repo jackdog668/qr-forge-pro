@@ -1,158 +1,124 @@
 # QR Forge Pro
 
-**Free, unlimited QR code generator with persistent storage. Static codes that never expire.**
+**Unlimited QR codes. Zero subscriptions. Never expire.**
 
-> Replaces $15.99/mo QR code subscription services with a zero-cost, client-side app that runs entirely in your browser.
+A full-featured, security-audited QR code generator that runs entirely client-side. No backend, no tracking, no expiration. Static QR codes encode data directly into the pattern; scan them in 10 years and they still work.
 
----
+Built by [Digital Alchemy Academy](https://beacons.ai/dbcreations) as a free alternative to $15.99/mo QR code services.
 
-## What It Does
-
-QR Forge Pro generates **static QR codes** — the data is encoded directly into the pattern itself. No redirect server, no scan limits, no expiration dates, no subscriptions. Scan the code in 10 years and it still works.
-
-### Features
-
-| Feature | QR Forge Pro | Typical Paid Service |
-|---------|-------------|---------------------|
-| Static QR codes | **Unlimited** | Unlimited |
-| Content types | **8** (URL, Text, Wi-Fi, Email, Phone, SMS, vCard, Location) | 3-5 |
-| Logo overlay | **Built-in** | Paid tier |
-| Dot styles | **4** (Square, Rounded, Dots, Diamond) | Paid tier |
-| Frame labels | **Built-in** | Paid tier |
-| Export formats | **PNG, SVG, JPG** + clipboard | PNG, JPG |
-| Bulk generation | **100 at once** | 500 (capped) |
-| Persistent library | **Unlimited saves** | Limited |
-| Style presets | **Unlimited** | N/A |
-| Price | **$0** | $15.99/mo ($191.88/yr) |
-
-### App Structure
-
-- **Create** — Full QR generator with all 8 content types, colors, dot styles, logo overlay, frame labels, ECL settings
-- **Library** — Persistent saved QR codes with search, filter by type, favorites system, detail modal with downloads
-- **Presets** — Save and reuse style configurations across sessions  
-- **Bulk** — Paste a list, generate up to 100 QR codes at once
+![version](https://img.shields.io/badge/version-1.0.0-40FF78?style=flat-square&labelColor=0A0B0D)
+![license](https://img.shields.io/badge/license-MIT-FFDB40?style=flat-square&labelColor=0A0B0D)
+![security](https://img.shields.io/badge/security-audited-00C8FF?style=flat-square&labelColor=0A0B0D)
 
 ---
 
-## Quick Start
+## Features
 
-### Option 1: Open Directly
+| Feature | Paid Services ($15.99/mo) | QR Forge Pro |
+|---|---|---|
+| Static QR codes | Unlimited | **Unlimited** |
+| Dynamic QR codes | 250 (capped) | N/A (static = never expire) |
+| Scans | Unlimited | **Unlimited** (no server) |
+| Logo overlay | Paid tiers | **Built in** |
+| Dot styles | Basic | **4 styles** |
+| Content types | Basic | **8 types** |
+| Bulk generation | 500 cap | **100 per batch** |
+| Exports | JPG, PNG, SVG, EPS | **PNG, SVG, JPG** |
+| Frame labels | Paid | **Built in** |
+| Persistent library | Cloud (their server) | **Local storage** |
+| Style presets | No | **Yes** |
+| Price | $191.88/year | **$0** |
 
-Just open `public/index.html` in any modern browser. No install, no build, no server.
+### Content Types
 
-### Option 2: Local Dev Server
+URL, Text, Wi-Fi (auto-connect), Email (mailto with subject/body), Phone (tap-to-call), SMS (pre-filled), vCard (full contact cards), GPS Location
 
-```bash
-npx serve public -l 3000
-```
+### Style Options
 
-### Option 3: Deploy to Vercel
+Custom colors, 4 dot styles (Square, Rounded, Dots, Diamond), logo overlay with drag-and-drop, frame labels, 4 error correction levels, sizes from 256px to 2048px (print-ready), adjustable margins
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/jackdog668/qr-forge-pro)
+### App Features
+
+- **Library** with search, filter, favorites (persists across sessions)
+- **Style Presets** that save and reuse configurations
+- **Bulk Generate** up to 100 codes at once
+- **Export** as PNG, SVG, JPG, or copy to clipboard
+- **Mobile-first** responsive design with bottom tab navigation
 
 ---
 
 ## Security
 
-This app was built with a security-first approach. A full audit was conducted covering OWASP categories A03 (Injection), A04 (Insecure Design), and A05 (Security Misconfiguration).
+Full security audit completed. See [docs/SECURITY-AUDIT.md](docs/SECURITY-AUDIT.md) for the complete report.
 
-### Security measures implemented:
+**12 findings identified and fixed:**
+- 1 Critical (XSS via storage poisoning)
+- 2 High (schema validation, CDN SRI)
+- 5 Medium (memory leak, bulk cap, SVG escaping, save debounce, logo UX)
+- 4 Low (toast race, password visibility, namespace, escape coverage)
 
-- **XSS prevention** — All dynamic values escaped via `esc()` before innerHTML injection, including single-quote contexts
-- **Storage schema validation** — Every library entry and preset validated on load with type checking, enum whitelisting, hex color format verification, and string length caps
-- **CDN integrity** — Subresource Integrity (SRI) hash on external script with `crossorigin="anonymous"`  
-- **Input validation** — Enum whitelisting for dot styles, ECL levels, and content types
-- **Memory management** — Blob URLs revoked after SVG downloads
-- **Resource caps** — Bulk generation capped at 100 entries, canvas size capped at 512px for bulk
-- **Namespace isolation** — All code wrapped in IIFE, single `window.QF` namespace exposed
-- **Save debounce** — Duplicate detection + lock mechanism prevents spam saves
-- **Full XML escaping** — SVG output sanitized for all special characters
+### Architecture
 
-See [`docs/SECURITY-AUDIT.md`](docs/SECURITY-AUDIT.md) for the complete audit report.
+- 100% client-side, no backend, no API keys, no tracking
+- IIFE-wrapped with single `window.QF` namespace
+- Schema-validated storage on every load
+- SRI-verified CDN dependency
+- Full HTML/XML escaping on all dynamic values
 
 ---
 
-## Architecture
+## Deploy
+
+### Vercel (recommended)
+```bash
+git clone https://github.com/jackdog668/qr-forge-pro.git
+cd qr-forge-pro
+vercel
+```
+
+### Any Static Host
+Serve the `public/` directory. The entire app is one `index.html`.
+
+```bash
+npx serve public
+```
+
+### GitHub Pages
+Fork > Settings > Pages > Source: `main` branch, `/public` folder
+
+---
+
+## Project Structure
 
 ```
 qr-forge-pro/
 ├── public/
-│   └── index.html          # Complete app (single-file, zero dependencies beyond QR lib)
+│   └── index.html          # The entire app (single-file)
 ├── docs/
-│   └── SECURITY-AUDIT.md   # Full security audit with findings and fixes
-├── package.json
+│   └── SECURITY-AUDIT.md   # Full security audit report
 ├── vercel.json              # Vercel deployment config
-├── .gitignore
-├── LICENSE
-├── CHANGELOG.md
+├── package.json             # Project metadata
+├── LICENSE                  # MIT License
+├── CHANGELOG.md             # Version history
 └── README.md
-```
-
-### Tech Stack
-
-- **Rendering**: Pure Canvas API for QR code generation with custom dot style renderers
-- **QR Engine**: `qrcode-generator` v1.4.4 (auto-detects optimal QR version 1-40)
-- **Storage**: `window.storage` API for persistent library and presets
-- **Export**: Canvas `toDataURL()` for PNG/JPG, programmatic SVG construction for vector output
-- **UI**: Vanilla HTML/CSS/JS with CSS custom properties, zero framework overhead
-
-### Storage Schema
-
-```
-qr-library → Array<{
-  id: string,        // alphanumeric, max 20 chars
-  name: string,      // max 100 chars
-  data: string,      // encoded QR content, max 5000 chars
-  type: enum,        // url|text|wifi|email|phone|sms|vcard|geo
-  fg: string,        // hex color #RRGGBB
-  bg: string,        // hex color #RRGGBB
-  dot: enum,         // square|rounded|dots|diamond
-  ecl: enum,         // L|M|Q|H
-  margin: enum,      // 1|2|4
-  frame: string|null, // frame label text, max 50 chars
-  size: enum,        // 256|512|1024|2048
-  thumb: string,     // base64 PNG data URL
-  fav: boolean,
-  created: ISO8601
-}>
-
-qr-presets → Array<{
-  id: string,
-  name: string,
-  fg: string,
-  bg: string,
-  dot: enum,
-  ecl: enum,
-  margin: enum,
-  created: ISO8601
-}>
 ```
 
 ---
 
-## Content Type Formats
+## Why Static QR Codes?
 
-| Type | Format | Example |
-|------|--------|---------|
-| URL | Raw URL | `https://digitalalchemy.dev` |
-| Text | Raw text | `Hello from QR Forge Pro` |
-| Wi-Fi | `WIFI:T:{enc};S:{ssid};P:{pass};;` | `WIFI:T:WPA;S:MyNet;P:pass123;;` |
-| Email | `mailto:{addr}?subject={s}&body={b}` | `mailto:desi@da.dev?subject=Hi` |
-| Phone | `tel:{number}` | `tel:+13125551234` |
-| SMS | `sms:{number}?body={msg}` | `sms:+13125551234?body=Hello` |
-| vCard | vCard 3.0 spec | Full contact card |
-| Location | `geo:{lat},{lng}` | `geo:41.8781,-87.6298` |
+Most QR services sell "dynamic" codes that route through their servers for analytics. Stop paying? Codes break. Server down? Codes break.
+
+**Static QR codes** encode data directly into the visual pattern. No middleman. The data IS the code. For 95% of use cases (business cards, Wi-Fi, menus, flyers), static is what you want.
 
 ---
 
 ## License
 
-MIT — see [LICENSE](LICENSE)
+MIT
 
 ---
 
-## Credits
-
-Built by **Desmond Baker Jr.** / [Digital Alchemy Academy](https://beacons.ai/dbcreations)
+Built by **Desi (Desmond Baker Jr.)** at [Digital Alchemy Academy](https://beacons.ai/dbcreations)
 
 *Build it. Commit it. Deploy it. Repeat.*
