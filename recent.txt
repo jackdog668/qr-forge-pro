@@ -1,0 +1,14 @@
+Recent sessions:
+
+1. DS-26 | 2026-03-18 | Other | "She Builds Digital: Product Build Session + Launch Planning" [BLOCKED]
+   ID: 327b4c45-59f3-81a6-94ac-f9cde951657e
+2. DS-25 | 2026-03-17 | Infrastructure | "Full Skills Plugins and Teams Audit" [BLOCKED]
+   ID: 326b4c45-59f3-81c6-954c-ebce939fb2fd
+3. DS-24 | 2026-03-17 | Other | "TRM Community Form Submission — ChatGPT to Claude Playbook"
+   ID: 326b4c45-59f3-81f5-af8b-fcc8f9bdc277
+4. DS-23 | 2026-03-17 | Other | "Perplexity Spaces Buildout + Research Template Library"
+   ID: 326b4c45-59f3-819a-b94f-f6f8703dd0d4
+5. DS-22 | 2026-03-17 | Other | "Monday Intelligence Protocol Design"
+   ID: 326b4c45-59f3-813c-9207-c3e10b01c5cc
+
+5 debrief(s) found.

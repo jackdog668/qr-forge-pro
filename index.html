@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>QR Forge Pro - Free QR Code Generator</title>
+<!-- SEO + Social -->
+<meta name="description" content="Unlimited QR codes. Zero subscriptions. Never expire. Free, open-source, security-audited QR code generator with logo overlay, bulk generation, and offline support.">
+<meta name="author" content="Digital Alchemy Academy">
+<meta property="og:title" content="QR Forge Pro - Free QR Code Generator">
+<meta property="og:description" content="Unlimited QR codes. Zero subscriptions. Never expire. 8 content types, 4 dot styles, logo overlay, bulk gen, QR scanner.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="/icon-512.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="QR Forge Pro">
+<meta name="twitter:description" content="Free, security-audited QR code generator. No subscriptions, no expiration.">
+<!-- PWA -->
+<meta name="theme-color" content="#40FF78">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="QR Forge">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<!-- CDN -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="offline-bar" id="offlineBar">&#x26A0; Offline Mode</div>
+<div class="app-loading" id="appLoading"><div class="spinner"></div><div class="load-text">Loading QR Forge Pro...</div></div>
+
+<!-- CREATE -->
+<div class="page" id="pg-create">
+  <div class="pg-header">
+    <div class="logo-box"></div>
+    <div>
+      <div class="pg-title">QR <span>Forge</span> Pro</div>
+      <div class="pg-sub">Create // Static // Forever</div>
+    </div>
+    <button class="theme-btn" id="themeToggle" onclick="QF.toggleTheme()" aria-label="Toggle theme">&#x1F319;</button>
+  </div>
+  <div class="pwa-banner" id="pwaBanner"><span>&#x1F4F2; Install as app for offline use</span><button onclick="QF.installPWA()">Install</button><button class="pwa-dismiss" onclick="QF.dismissPWA()">&#x2715;</button></div>
+  <!-- Templates -->
+  <div class="card"><div class="card-t">Quick Templates</div><div class="tpl-grid" id="tplGrid"></div></div>
+  <div class="card"><div class="card-t">Content</div><div class="chips" id="typeChips"></div><div id="formArea"></div></div>
+  <div class="card"><div class="card-t">Style</div>
+    <div class="field-row" style="margin-bottom:10px"><div class="field"><label>Foreground</label><div class="clr-wrap" onclick="this.querySelector('input').click()"><input type="color" id="fgC" value="#000000" onchange="QF.updClr()"><span class="clr-v" id="fgH">#000000</span></div></div><div class="field"><label>Background</label><div class="clr-wrap" onclick="this.querySelector('input').click()"><input type="color" id="bgC" value="#FFFFFF" onchange="QF.updClr()"><span class="clr-v" id="bgH">#FFFFFF</span></div></div></div>
+    <div class="field"><label>Dot Style</label><div class="dot-grid" id="dotGrid"></div></div></div>
+  <div class="card"><div class="card-t">Logo Overlay</div>
+    <div class="logo-drop" id="logoDZ" onclick="document.getElementById('logoIn').click()"><input type="file" id="logoIn" accept="image/*" onchange="QF.handleLogo(event)"><div class="up-txt" id="upTxt"><strong>Tap to upload</strong> or drag<br>PNG, JPG, SVG</div><div class="logo-prev" id="logoPrev"><img id="logoImg" alt=""><div class="logo-info"><div class="logo-nm" id="logoNm"></div><div class="logo-sz" id="logoSz"></div></div><button class="rm-logo" onclick="QF.rmLogo(event)">Remove</button></div></div>
+    <div class="logo-warn" id="logoWarn" style="display:none">&#x26A0; Logo is session-only, won't persist in library</div></div>
+  <div class="card"><div class="card-t">Frame</div><div class="tog" onclick="QF.toggleFrame()"><div class="tog-track" id="frameTog"></div><span class="tog-lbl">Add text below QR</span></div><div id="frameF" style="display:none"><input type="text" id="frameTxt" placeholder="SCAN ME" value="SCAN ME" oninput="QF.onInput()"></div></div>
+  <div class="card"><div class="card-t">Settings</div>
+    <div class="field-row" style="margin-bottom:10px"><div class="field"><label>Size</label><select id="sizeS" onchange="QF.S.size=+this.value"><option value="256">256px</option><option value="512" selected>512px</option><option value="1024">1024px</option><option value="2048">2048px</option></select></div><div class="field"><label>Margin</label><select id="marginS" onchange="QF.S.margin=+this.value;QF.onInput()"><option value="1">Slim</option><option value="2" selected>Normal</option><option value="4">Wide</option></select></div></div>
+    <label>Error Correction</label><div class="ecl-row" id="eclRow"></div>
+    <div style="font-size:9px;color:var(--txt-d);margin-top:6px">Logo? Use <strong style="color:var(--gld)">H 30%</strong> for best scan reliability.</div></div>
+  <div style="text-align:right;margin-bottom:6px"><button class="btn-s" onclick="QF.savePreset()" style="font-size:10px">&#x1F3A8; Save Preset</button></div>
+
+  <!-- Generate Button -->
+  <button class="btn-g generate-btn" onclick="QF.generate()" id="genBtn">&#x26A1; Generate QR Code</button>
+
+  <!-- Output Card (hidden until generated) -->
+  <div class="card preview-card" id="prevCard" style="display:none">
+    <div class="card-t">Your QR Code</div>
+    <div class="prev-live" id="prevLive">
+      <div class="qr-frame" id="qrFrame" style="background:#fff"><canvas id="qr-canvas"></canvas></div>
+      <div class="qr-meta" id="qrMeta"></div>
+      <div class="save-row"><input type="text" id="saveName" placeholder="Name this QR code..." maxlength="100"><button class="save-btn" id="saveBtn" onclick="QF.saveToLib()">&#x2B50; Save to Library</button></div>
+      <div class="dl-grid">
+        <button class="btn-s" onclick="QF.dlPNG()">&#x2B07; PNG</button>
+        <button class="btn-s" onclick="QF.dlSVG()">&#x2B07; SVG</button>
+        <button class="btn-s" onclick="QF.dlJPG()">&#x2B07; JPG</button>
+        <button class="btn-s" onclick="QF.shareQR()">&#x1F4E4; Share</button>
+      </div>
+      <button class="btn-s" style="width:100%;justify-content:center" onclick="QF.copyQR()">&#x1F4CB; Copy to Clipboard</button>
+      <div class="badge-f" style="margin-top:8px">&#x2714; Static // No expiration</div>
+    </div>
+  </div>
+</div>
+
+<!-- LIBRARY -->
+<div class="page" id="pg-library">
+  <div class="pg-header"><div class="logo-box"></div><div><div class="pg-title">My <span>Library</span></div><div class="pg-sub">Saved QR Codes</div></div></div>
+  <div class="lib-stats" id="libStats"></div>
+  <div class="lib-bar">
+    <button class="btn-s" onclick="QF.toggleBatch()" id="batchBtn" style="font-size:10px">&#x2610; Select</button>
+    <button class="btn-s" onclick="QF.batchDelete()" id="batchDelBtn" style="display:none;font-size:10px;color:var(--red)">&#x1F5D1; Delete Selected</button>
+    <button class="btn-s" onclick="QF.batchDownload()" id="batchDlBtn" style="display:none;font-size:10px">&#x2B07; Download Selected</button>
+    <div style="flex:1"></div>
+    <button class="btn-s" onclick="QF.exportLib()" style="font-size:10px">&#x1F4E5; Export</button>
+    <button class="btn-s" onclick="document.getElementById('importIn').click()" style="font-size:10px">&#x1F4E4; Import</button>
+    <input type="file" id="importIn" accept=".json" style="display:none" onchange="QF.importLib(event)">
+  </div>
+  <div class="lib-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" id="libSearch" placeholder="Search..." oninput="QF.renderLib()"></div>
+  <div class="lib-filters" id="libFilters"></div>
+  <div id="libGrid"></div>
+</div>
+
+<!-- SCANNER -->
+<div class="page" id="pg-scan">
+  <div class="pg-header"><div class="logo-box"></div><div><div class="pg-title">QR <span>Scanner</span></div><div class="pg-sub">Read any QR code</div></div></div>
+  <div class="card">
+    <div class="scan-area" id="scanArea"><video id="scanVideo" playsinline autoplay muted></video><canvas id="scanCanvas"></canvas>
+      <div class="scan-overlay"><div class="scan-corners"></div><div class="scan-line" id="scanLine"></div></div></div>
+    <div style="text-align:center;margin-top:8px"><button class="btn-s" id="scanToggle" onclick="QF.toggleScan()">&#x1F4F7; Start Camera</button></div>
+    <div id="scanResult" style="display:none"></div>
+  </div>
+</div>
+
+<!-- PRESETS -->
+<div class="page" id="pg-presets">
+  <div class="pg-header"><div class="logo-box"></div><div><div class="pg-title">Style <span>Presets</span></div><div class="pg-sub">Saved Configurations</div></div></div>
+  <div id="presetGrid"></div>
+</div>
+
+<!-- BULK -->
+<div class="page" id="pg-bulk">
+  <div class="pg-header"><div class="logo-box"></div><div><div class="pg-title">Bulk <span>Generate</span></div><div class="pg-sub">Up to 100 at once</div></div></div>
+  <div class="card"><div class="card-t">Batch Input</div><div class="bulk-info">One entry per line (max 100). Uses current style settings.</div><textarea id="bulkIn" style="min-height:100px" placeholder="https://example.com&#10;https://another.com&#10;WIFI:T:WPA;S:Net;P:pass;;"></textarea><button class="btn-g" onclick="QF.genBulk()">Generate All</button><div class="bulk-res" id="bulkRes"></div></div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg" role="dialog" aria-modal="true" aria-label="QR code details" onclick="if(event.target===this)QF.closeModal()"><div class="modal" id="modal"></div></div>
+
+<!-- Keyboard Shortcuts -->
+<div class="kb-overlay" id="kbOverlay" onclick="if(event.target===this)QF.closeKB()">
+  <div class="kb-panel"><div class="kb-title"><span>Keyboard Shortcuts</span><button onclick="QF.closeKB()">&#x2715;</button></div>
+    <div class="kb-row"><span class="kb-desc">Generate QR</span><span class="kb-key">Ctrl+Enter</span></div>
+    <div class="kb-row"><span class="kb-desc">Save to Library</span><span class="kb-key">Ctrl+S</span></div>
+    <div class="kb-row"><span class="kb-desc">Show Shortcuts</span><span class="kb-key">?</span></div>
+    <div class="kb-row"><span class="kb-desc">Close Modal</span><span class="kb-key">Esc</span></div>
+    <div class="kb-row"><span class="kb-desc">Navigate Tabs</span><span class="kb-key">1-5</span></div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="bnav" role="tablist" aria-label="Main navigation">
+  <button class="bnav-btn active" onclick="QF.goTo('create')" data-pg="create" role="tab" aria-selected="true" aria-label="Create QR code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Create</button>
+  <button class="bnav-btn" onclick="QF.goTo('library')" data-pg="library" role="tab" aria-selected="false" aria-label="QR library"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>Library</button>
+  <button class="bnav-btn" onclick="QF.goTo('scan')" data-pg="scan" role="tab" aria-selected="false" aria-label="QR scanner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7V5a2 2 0 012-2h2"/><path d="M17 3h2a2 2 0 012 2v2"/><path d="M21 17v2a2 2 0 01-2 2h-2"/><path d="M7 21H5a2 2 0 01-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg>Scan</button>
+  <button class="bnav-btn" onclick="QF.goTo('presets')" data-pg="presets" role="tab" aria-selected="false" aria-label="Style presets"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Presets</button>
+  <button class="bnav-btn" onclick="QF.goTo('bulk')" data-pg="bulk" role="tab" aria-selected="false" aria-label="Bulk generate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="7" width="6" height="6" rx="1"/><rect x="9" y="7" width="6" height="6" rx="1"/><rect x="16" y="7" width="6" height="6" rx="1"/><rect x="2" y="14" width="6" height="6" rx="1"/><rect x="9" y="14" width="6" height="6" rx="1"/><rect x="16" y="14" width="6" height="6" rx="1"/></svg>Bulk</button>
+</nav>
+<div class="toast" id="toast" role="alert" aria-live="assertive" aria-atomic="true"><span id="toastMsg"></span></div>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
