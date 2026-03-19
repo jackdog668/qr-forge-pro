@@ -2,10 +2,11 @@
 
 export const VD = ['square', 'rounded', 'dots', 'diamond'];
 export const VE = ['L', 'M', 'Q', 'H'];
-export const VT = ['url', 'text', 'wifi', 'email', 'phone', 'sms', 'vcard', 'geo'];
+export const VT = ['url', 'text', 'wifi', 'email', 'phone', 'sms', 'vcard', 'geo', 'linkinbio'];
 
 export const TEMPLATES = [
   { icon: '\u{1F310}', name: 'Website', desc: 'Link to any URL', type: 'url', prefill: { url: 'https://' } },
+  { icon: '\u{1F4F1}', name: 'Link in Bio', desc: 'No-host micro-page', type: 'linkinbio', prefill: { 'lb-name': 'My Page' } },
   { icon: '\u{1F4F6}', name: 'Wi-Fi Sign', desc: 'Auto-connect guests', type: 'wifi', prefill: {} },
   { icon: '\u{1F4C7}', name: 'Business Card', desc: 'Full vCard contact', type: 'vcard', prefill: {} },
   { icon: '\u{1F4F1}', name: 'Social Link', desc: 'Profile or linktree', type: 'url', prefill: { url: 'https://beacons.ai/' } },
@@ -22,8 +23,13 @@ export const TYPES = [
   { id: 'email', icon: '\u2709', label: 'Email', fields: [{ id: 'em-addr', type: 'email', ph: 'name@example.com', lbl: 'Address' }, { id: 'em-subj', type: 'text', ph: 'Subject', lbl: 'Subject' }, { id: 'em-body', type: 'textarea', ph: 'Body...', lbl: 'Body' }] },
   { id: 'phone', icon: '\u{1F4DE}', label: 'Phone', fields: [{ id: 'phone', type: 'tel', ph: '+1 234 567 8900' }] },
   { id: 'sms', icon: '\u{1F4AC}', label: 'SMS', fields: [{ id: 'sms-num', type: 'tel', ph: '+1 234 567 8900', lbl: 'Number' }, { id: 'sms-msg', type: 'textarea', ph: 'Message...', lbl: 'Message' }] },
-  { id: 'vcard', icon: '\u{1F464}', label: 'vCard', fields: [{ id: 'vc-first', type: 'text', ph: 'First Name', lbl: 'First' }, { id: 'vc-last', type: 'text', ph: 'Last Name', lbl: 'Last' }, { id: 'vc-phone', type: 'tel', ph: 'Phone', lbl: 'Phone' }, { id: 'vc-email', type: 'email', ph: 'Email', lbl: 'Email' }, { id: 'vc-org', type: 'text', ph: 'Organization', lbl: 'Org' }, { id: 'vc-url', type: 'url', ph: 'Website', lbl: 'URL' }] },
+  { id: 'vcard', icon: '\u{1F464}', label: 'vCard', fields: [{ id: 'vc-first', type: 'text', ph: 'First Name', lbl: 'First' }, { id: 'vc-last', type: 'text', ph: 'Last Name', lbl: 'Last' }, { id: 'vc-phone', type: 'tel', ph: 'Phone', lbl: 'Phone' }, { id: 'vc-email', type: 'email', ph: 'Email', lbl: 'Email' }, { id: 'vc-org', type: 'text', ph: 'Organization', lbl: 'Org' }, { id: 'vc-url', type: 'url', ph: 'Website', lbl: 'URL' }, { id: 'vc-photo', type: 'file', accept: 'image/*', lbl: 'Profile Photo' }] },
+  { id: 'appstore', icon: '\u{1F4F1}', label: 'App Store', fields: [{ id: 'as-ios', type: 'url', ph: 'https://apps.apple.com/...', lbl: 'iOS Link' }, { id: 'as-and', type: 'url', ph: 'https://play.google.com/...', lbl: 'Android Link' }, { id: 'as-web', type: 'url', ph: 'https://example.com...', lbl: 'Fallback URL' }] },
+  { id: 'secure', icon: '\u{1F512}', label: 'Secure Text', fields: [{ id: 'sec-msg', type: 'textarea', ph: 'Secret message...', lbl: 'Message' }, { id: 'sec-pw', type: 'password', ph: 'Password to unlock', lbl: 'Generate Password', pw: true }] },
+  { id: 'event', icon: '\u{1F4C5}', label: 'Event', fields: [{ id: 'ev-title', type: 'text', ph: 'Meeting', lbl: 'Title' }, { id: 'ev-desc', type: 'textarea', ph: 'Details...', lbl: 'Desc' }, { id: 'ev-loc', type: 'text', ph: 'Address/Room', lbl: 'Location' }, { id: 'ev-start', type: 'datetime-local', lbl: 'Start' }, { id: 'ev-end', type: 'datetime-local', lbl: 'End' }] },
+  { id: 'crypto', icon: '\u{20BF}', label: 'Crypto', fields: [{ id: 'cr-coin', type: 'select', opts: ['Bitcoin', 'Ethereum'], lbl: 'Coin' }, { id: 'cr-addr', type: 'text', ph: '1A1zP1...', lbl: 'Address' }, { id: 'cr-amt', type: 'number', ph: '0.05', lbl: 'Amount' }] },
   { id: 'geo', icon: '\u{1F4CD}', label: 'Location', fields: [{ id: 'geo-lat', type: 'text', ph: '41.8781', lbl: 'Lat' }, { id: 'geo-lng', type: 'text', ph: '-87.6298', lbl: 'Lng' }] },
+  { id: 'linkinbio', icon: '\u{1F310}', label: 'Bio Link', fields: [{ id: 'lb-name', type: 'text', ph: 'Your Name', lbl: 'Name' }, { id: 'lb-bio', type: 'text', ph: 'Short Bio', lbl: 'Bio' }, { id: 'lb-t1', type: 'text', ph: 'Link 1 Title', lbl: 'Link 1' }, { id: 'lb-u1', type: 'url', ph: 'https://...', lbl: 'URL 1' }, { id: 'lb-t2', type: 'text', ph: 'Link 2 Title', lbl: 'Link 2' }, { id: 'lb-u2', type: 'url', ph: 'https://...', lbl: 'URL 2' }, { id: 'lb-t3', type: 'text', ph: 'Link 3 Title', lbl: 'Link 3' }, { id: 'lb-u3', type: 'url', ph: 'https://...', lbl: 'URL 3' }] },
 ];
 
 export const DOTS = [

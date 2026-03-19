@@ -42,16 +42,34 @@
     <button class="theme-btn" id="themeToggle" onclick="QF.toggleTheme()" aria-label="Toggle theme">&#x1F319;</button>
   </div>
   <div class="pwa-banner" id="pwaBanner"><span>&#x1F4F2; Install as app for offline use</span><button onclick="QF.installPWA()">Install</button><button class="pwa-dismiss" onclick="QF.dismissPWA()">&#x2715;</button></div>
+  <!-- Remix -->
+  <div class="card" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="document.getElementById('remixUpload').click()">
+    <div><strong>&#x1F4BF; Remix existing QR</strong><br><small style="color:#666">Upload a code to clone & style it</small></div>
+    <button class="btn-s" style="pointer-events:none;">Upload</button>
+    <input type="file" id="remixUpload" accept="image/*" style="display:none" onchange="QF.handleRemix(event)">
+  </div>
   <!-- Templates -->
   <div class="card"><div class="card-t">Quick Templates</div><div class="tpl-grid" id="tplGrid"></div></div>
   <div class="card"><div class="card-t">Content</div><div class="chips" id="typeChips"></div><div id="formArea"></div></div>
   <div class="card"><div class="card-t">Style</div>
-    <div class="field-row" style="margin-bottom:10px"><div class="field"><label>Foreground</label><div class="clr-wrap" onclick="this.querySelector('input').click()"><input type="color" id="fgC" value="#000000" onchange="QF.updClr()"><span class="clr-v" id="fgH">#000000</span></div></div><div class="field"><label>Background</label><div class="clr-wrap" onclick="this.querySelector('input').click()"><input type="color" id="bgC" value="#FFFFFF" onchange="QF.updClr()"><span class="clr-v" id="bgH">#FFFFFF</span></div></div></div>
-    <div class="field"><label>Dot Style</label><div class="dot-grid" id="dotGrid"></div></div></div>
+    <div class="field-row" style="margin-bottom:10px">
+      <div class="field"><label>Fill Type</label><select id="fgType" onchange="QF.S.fgType=this.value;QF.updClr()"><option value="solid" selected>Solid</option><option value="linear">Linear Gradient</option><option value="radial">Radial Gradient</option></select></div>
+      <div class="field"><label>Eye Style (Corners)</label><select id="eyeS" onchange="QF.S.eye=this.value;QF.onInput()"><option value="square" selected>Square (Default)</option><option value="rounded">Rounded</option><option value="leaf">Leaf</option></select></div>
+    </div>
+    <div class="field-row" style="margin-bottom:10px">
+      <div class="field"><label>Foreground</label><div class="clr-wrap" onclick="this.querySelector('input').click()"><input type="color" id="fgC" value="#000000" onchange="QF.updClr()"><span class="clr-v" id="fgH">#000000</span></div></div>
+      <div class="field" id="fg2Wrap" style="display:none"><label>Gradient End</label><div class="clr-wrap" onclick="this.querySelector('input').click()"><input type="color" id="fgC2" value="#000000" onchange="QF.updClr()"><span class="clr-v" id="fgH2">#000000</span></div></div>
+      <div class="field"><label>Background</label><div class="clr-wrap" onclick="this.querySelector('input').click()"><input type="color" id="bgC" value="#FFFFFF" onchange="QF.updClr()"><span class="clr-v" id="bgH">#FFFFFF</span></div></div>
+    </div>
+    <div class="field"><label>Data Dot Style</label><div class="dot-grid" id="dotGrid"></div></div></div>
   <div class="card"><div class="card-t">Logo Overlay</div>
     <div class="logo-drop" id="logoDZ" onclick="document.getElementById('logoIn').click()"><input type="file" id="logoIn" accept="image/*" onchange="QF.handleLogo(event)"><div class="up-txt" id="upTxt"><strong>Tap to upload</strong> or drag<br>PNG, JPG, SVG</div><div class="logo-prev" id="logoPrev"><img id="logoImg" alt=""><div class="logo-info"><div class="logo-nm" id="logoNm"></div><div class="logo-sz" id="logoSz"></div></div><button class="rm-logo" onclick="QF.rmLogo(event)">Remove</button></div></div>
     <div class="logo-warn" id="logoWarn" style="display:none">&#x26A0; Logo is session-only, won't persist in library</div></div>
-  <div class="card"><div class="card-t">Frame</div><div class="tog" onclick="QF.toggleFrame()"><div class="tog-track" id="frameTog"></div><span class="tog-lbl">Add text below QR</span></div><div id="frameF" style="display:none"><input type="text" id="frameTxt" placeholder="SCAN ME" value="SCAN ME" oninput="QF.onInput()"></div></div>
+  <div class="card"><div class="card-t">Frame & Badges</div>
+    <div class="field-row" style="margin-bottom:10px">
+      <div class="field"><label>Frame Style</label><select id="frameS" onchange="QF.S.frameStyle=this.value;QF.handleFrameUI()"><option value="none" selected>No Frame</option><option value="bottom">Text Below</option><option value="badge">"Scan Me" Badge (Top)</option><option value="polaroid">Polaroid (Bottom)</option></select></div>
+    </div>
+    <div id="frameF" style="display:none"><input type="text" id="frameTxt" placeholder="SCAN ME" value="SCAN ME" oninput="QF.onInput()"></div></div>
   <div class="card"><div class="card-t">Settings</div>
     <div class="field-row" style="margin-bottom:10px"><div class="field"><label>Size</label><select id="sizeS" onchange="QF.S.size=+this.value"><option value="256">256px</option><option value="512" selected>512px</option><option value="1024">1024px</option><option value="2048">2048px</option></select></div><div class="field"><label>Margin</label><select id="marginS" onchange="QF.S.margin=+this.value;QF.onInput()"><option value="1">Slim</option><option value="2" selected>Normal</option><option value="4">Wide</option></select></div></div>
     <label>Error Correction</label><div class="ecl-row" id="eclRow"></div>
@@ -72,7 +90,9 @@
         <button class="btn-s" onclick="QF.dlPNG()">&#x2B07; PNG</button>
         <button class="btn-s" onclick="QF.dlSVG()">&#x2B07; SVG</button>
         <button class="btn-s" onclick="QF.dlJPG()">&#x2B07; JPG</button>
-        <button class="btn-s" onclick="QF.shareQR()">&#x1F4E4; Share</button>
+        <button class="btn-s" onclick="QF.printQR()">&#x1F5A8; Print HQ</button>
+        <button class="btn-s" id="btnWifi" style="display:none;grid-column:1 / -1;justify-content:center;background:var(--blu);color:#000" onclick="QF.printWifi()">&#x1F5A8; Print Wi-Fi Tent Card</button>
+        <button class="btn-s" style="grid-column:1 / -1;justify-content:center" onclick="QF.shareQR()">&#x1F4E4; Share</button>
       </div>
       <button class="btn-s" style="width:100%;justify-content:center" onclick="QF.copyQR()">&#x1F4CB; Copy to Clipboard</button>
       <div class="badge-f" style="margin-top:8px">&#x2714; Static // No expiration</div>
@@ -118,7 +138,9 @@
 <!-- BULK -->
 <div class="page" id="pg-bulk">
   <div class="pg-header"><div class="logo-box"></div><div><div class="pg-title">Bulk <span>Generate</span></div><div class="pg-sub">Up to 100 at once</div></div></div>
-  <div class="card"><div class="card-t">Batch Input</div><div class="bulk-info">One entry per line (max 100). Uses current style settings.</div><textarea id="bulkIn" style="min-height:100px" placeholder="https://example.com&#10;https://another.com&#10;WIFI:T:WPA;S:Net;P:pass;;"></textarea><button class="btn-g" onclick="QF.genBulk()">Generate All</button><div class="bulk-res" id="bulkRes"></div></div>
+  <div class="card"><div class="card-t">Batch Input</div><div class="bulk-info">One entry per line (max 100). Uses current style settings.</div><textarea id="bulkIn" style="min-height:100px" placeholder="https://example.com&#10;https://another.com&#10;WIFI:T:WPA;S:Net;P:pass;;"></textarea>
+  <div style="display:flex;gap:10px;margin-top:10px;"><button class="btn-g" onclick="QF.genBulk()">Generate (Preview)</button><button class="btn-g" onclick="document.getElementById('csvUpload').click()" style="background:#4CAF50;">&#x1F4C2; CSV to ZIP</button><input type="file" id="csvUpload" accept=".csv" style="display:none" onchange="QF.handleCSV(event)"></div>
+  <div class="bulk-res" id="bulkRes"></div></div>
 </div>
 
 <!-- MODAL -->

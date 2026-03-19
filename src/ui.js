@@ -81,6 +81,9 @@ function updateThemeIcon(theme) {
 export function renderForm(state, onInput) {
   const t = TYPES.find((x) => x.id === state.type);
   let h = '';
+  if (state.type === 'geo') {
+    h += `<div style="text-align:right; margin-bottom: 10px;"><button class="btn-s" onclick="QF.useMyLoc()" style="padding:4px 8px;font-size:0.8rem;background:#10a37f;color:#fff;">&#x1F4CD; Use Current Location</button></div>`;
+  }
   t.fields.forEach((f) => {
     h += `<div class="field">`;
     if (f.lbl) h += `<label>${esc(f.lbl)}</label>`;
@@ -90,6 +93,8 @@ export function renderForm(state, onInput) {
       h += `<select id="f-${esc(f.id)}" onchange="QF.onInput()">${f.opts.map((o) => `<option>${esc(o)}</option>`).join('')}</select>`;
     else if (f.pw)
       h += `<div class="pw-row"><input type="password" id="f-${esc(f.id)}" placeholder="${esc(f.ph)}" oninput="QF.onInput()"><button class="pw-toggle" type="button" onclick="QF.togglePw(this)">Show</button></div>`;
+    else if (f.type === 'file')
+      h += `<input type="file" id="f-${esc(f.id)}" accept="${f.accept || ''}" onchange="QF.handleFileInput(event, '${esc(f.id)}')">`;
     else
       h += `<input type="${esc(f.type)}" id="f-${esc(f.id)}" placeholder="${esc(f.ph)}" oninput="QF.onInput()">`;
     h += `</div>`;
@@ -125,13 +130,14 @@ export function renderEclRow(state) {
 export function updClr(state) {
   $('fgH').textContent = state.fg = $('fgC').value;
   $('bgH').textContent = state.bg = $('bgC').value;
+  if ($('fgC2')) $('fgH2').textContent = state.fg2 = $('fgC2').value;
+  if ($('fg2Wrap')) $('fg2Wrap').style.display = state.fgType !== 'solid' ? 'block' : 'none';
+  if (typeof QF !== 'undefined' && QF.onInput) QF.onInput();
 }
 
 // ── Toggles ──
-export function toggleFrame(state) {
-  state.frame = !state.frame;
-  $('frameTog').classList.toggle('on', state.frame);
-  $('frameF').style.display = state.frame ? 'block' : 'none';
+export function handleFrameUI(state) {
+  $('frameF').style.display = state.frameStyle !== 'none' ? 'block' : 'none';
 }
 
 export function togglePw(btn) {
@@ -175,6 +181,31 @@ export function handleLogo(e, onLogoChange) {
     const img = new Image();
     img.onload = () => {
       onLogoChange(img);
+      
+      try {
+        const c = document.createElement('canvas');
+        c.width = 50; c.height = 50;
+        const actx = c.getContext('2d', { willReadFrequently: true });
+        actx.drawImage(img, 0, 0, 50, 50);
+        const dat = actx.getImageData(0,0,50,50).data;
+        let R=0, G=0, B=0, cnt=0;
+        for(let j=0; j<dat.length; j+=4) {
+          if(dat[j+3] >= 128) { R+=dat[j]; G+=dat[j+1]; B+=dat[j+2]; cnt++; }
+        }
+        if (cnt > 0) {
+          const hex = '#' + [Math.round(R/cnt), Math.round(G/cnt), Math.round(B/cnt)]
+            .map(x=>x.toString(16).padStart(2,'0')).join('');
+          const fgInp = document.getElementById('fgC');
+          const fgTyp = document.getElementById('fgType');
+          if (fgInp && fgTyp && window.QF) {
+            fgInp.value = hex;
+            fgTyp.value = 'solid';
+            window.QF.S.fgType = 'solid';
+            window.QF.updClr();
+          }
+        }
+      } catch (err) { console.log('Branding extraction skipped', err); }
+
       $('logoImg').src = ev.target.result;
       $('logoNm').textContent = file.name;
       $('logoSz').textContent = `${img.width}x${img.height}`;
@@ -202,14 +233,14 @@ export function rmLogo(e, onLogoChange) {
 export function showPreview(state, data, canvas, logoImg) {
   // Import renderQR dynamically to avoid circular deps
   import('./qr-engine.js').then(({ renderQR }) => {
-    const frame = state.frame ? ($('frameTxt').value.trim() || null) : null;
+    const text = state.frameStyle !== 'none' ? ($('frameTxt').value.trim() || 'SCAN ME') : null;
     try {
-      renderQR(data, canvas, 256, state.fg, state.bg, state.dot, state.ecl, state.margin, logoImg, frame);
-      $('qrFrame').style.background = state.bg;
+      renderQR(data, canvas, 256, state.fgType, state.fg, state.fg2, state.bg, state.dot, state.eye, state.ecl, state.margin, logoImg, state.frameStyle, text);
+      $('qrFrame').style.background = state.frameStyle === 'none' ? state.bg : '#f0f0f0';
       $('prevEmpty').style.display = 'none';
       $('prevLive').classList.add('vis');
 
-      $('qrMeta').innerHTML = `<b>${esc(state.type.toUpperCase())}</b> // 256px preview // ECL-${esc(state.ecl)} // ${esc(state.dot)}${logoImg ? ' +logo' : ''}${frame ? ' +frame' : ''}<br>${data.length.toLocaleString()} chars`;
+      $('qrMeta').innerHTML = `<b>${esc(state.type.toUpperCase())}</b> // 256px preview // ECL-${esc(state.ecl)} // ${esc(state.dot)}${logoImg ? ' +logo' : ''}${state.frameStyle !== 'none' ? ' +frame' : ''}<br>${data.length.toLocaleString()} chars`;
     } catch {
       // Data too long for this ECL — silently ignore in preview
     }
