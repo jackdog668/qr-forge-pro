@@ -33,6 +33,7 @@ export const state = {
   fg: '#000000',
   fg2: '#000000',
   bg: '#FFFFFF',
+  bgTrans: false,
   dot: 'square',
   eye: 'square',
   ecl: 'M',
@@ -143,12 +144,22 @@ function generate() {
     const text = state.frameStyle !== 'none' ? ($('frameTxt').value.trim() || 'SCAN ME') : null;
     try {
       const cvs = $('qr-canvas');
-      renderQR(data, cvs, state.size, state.fgType, state.fg, state.fg2, state.bg, state.dot, state.eye, state.ecl, state.margin, logoImg, state.frameStyle, text);
+      const actualBg = state.bgTrans ? 'transparent' : state.bg;
+      renderQR(data, cvs, state.size, state.fgType, state.fg, state.fg2, actualBg, state.dot, state.eye, state.ecl, state.margin, logoImg, state.frameStyle, text);
       $('qrFrame').style.background = state.frameStyle === 'none' ? state.bg : '#f0f0f0'; // reset preview bg
       $('qrMeta').innerHTML =
         `<b>${esc(state.type.toUpperCase())}</b> // ${state.size}px // ECL-${esc(state.ecl)} // ${esc(state.dot)}${logoImg ? ' +logo' : ''}${state.frameStyle !== 'none' ? ' +frame' : ''}<br>${data.length.toLocaleString()} chars`;
       $('prevCard').style.display = 'block';
-      lastRender = { data, size: state.size, fgType: state.fgType, fg: state.fg, fg2: state.fg2, bg: state.bg, dot: state.dot, eye: state.eye, ecl: state.ecl, margin: state.margin, frameStyle: state.frameStyle, type: state.type, text };
+      lastRender = { data, size: state.size, fgType: state.fgType, fg: state.fg, fg2: state.fg2, bg: state.bg, bgTrans: state.bgTrans, dot: state.dot, eye: state.eye, ecl: state.ecl, margin: state.margin, frameStyle: state.frameStyle, type: state.type, text };
+      
+      const inputs = {};
+      document.querySelectorAll('#formArea input, #formArea select, #formArea textarea').forEach(el => {
+          if(el.id) inputs[el.id] = el.value;
+      });
+      lastRender.inputs = inputs;
+      
+      import('./library.js').then(l => l.saveToHistory(lastRender));
+      
       const bw = $('btnWifi');
       if (bw) bw.style.display = state.type === 'wifi' ? 'flex' : 'none';
     $('saveName').value = '';
@@ -184,7 +195,8 @@ function dlJPG() {
 function dlSVG() {
   ensureFullRender();
   if (!lastRender) return;
-  const svg = generateSVG(lastRender.data, lastRender.size, lastRender.fgType, lastRender.fg, lastRender.fg2, lastRender.bg, lastRender.dot, lastRender.eye, lastRender.ecl, lastRender.margin, lastRender.frameStyle, lastRender.text, !!logoImg);
+  const actualBg = lastRender.bgTrans ? 'transparent' : lastRender.bg;
+  const svg = generateSVG(lastRender.data, lastRender.size, lastRender.fgType, lastRender.fg, lastRender.fg2, actualBg, lastRender.dot, lastRender.eye, lastRender.ecl, lastRender.margin, lastRender.frameStyle, lastRender.text, !!logoImg);
   const blob = new Blob([svg], { type: 'image/svg+xml' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -199,7 +211,8 @@ function printQR() {
   ensureFullRender();
   if (!lastRender) return;
   import('./qr-engine.js').then(({ generateSVG }) => {
-    const svg = generateSVG(lastRender.data, lastRender.size, lastRender.fgType, lastRender.fg, lastRender.fg2, lastRender.bg, lastRender.dot, lastRender.eye, lastRender.ecl, lastRender.margin, lastRender.frameStyle, lastRender.text);
+    const actualBg = lastRender.bgTrans ? 'transparent' : lastRender.bg;
+    const svg = generateSVG(lastRender.data, lastRender.size, lastRender.fgType, lastRender.fg, lastRender.fg2, actualBg, lastRender.dot, lastRender.eye, lastRender.ecl, lastRender.margin, lastRender.frameStyle, lastRender.text);
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
       toast('Popup blocked! Allow popups to print.');
@@ -216,7 +229,8 @@ function printWifi() {
   const ssid = document.getElementById('f-wifi-ssid')?.value || 'Guest';
   const pass = document.getElementById('f-wifi-pass')?.value || 'None';
   import('./qr-engine.js').then(({ generateSVG }) => {
-    const svg = generateSVG(lastRender.data, lastRender.size, lastRender.fgType, lastRender.fg, lastRender.fg2, lastRender.bg, lastRender.dot, lastRender.eye, lastRender.ecl, lastRender.margin, 'none', '', !!logoImg);
+    const actualBg = lastRender.bgTrans ? 'transparent' : lastRender.bg;
+    const svg = generateSVG(lastRender.data, lastRender.size, lastRender.fgType, lastRender.fg, lastRender.fg2, actualBg, lastRender.dot, lastRender.eye, lastRender.ecl, lastRender.margin, 'none', '', !!logoImg);
     const printWindow = window.open('', '_blank');
     if (!printWindow) return toast('Popup blocked!');
     printWindow.document.write(`

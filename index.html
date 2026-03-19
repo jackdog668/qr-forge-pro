@@ -25,6 +25,7 @@
 <!-- CDN -->
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -54,12 +55,14 @@
   <div class="card"><div class="card-t">Style</div>
     <div class="field-row" style="margin-bottom:10px">
       <div class="field"><label>Fill Type</label><select id="fgType" onchange="QF.S.fgType=this.value;QF.updClr()"><option value="solid" selected>Solid</option><option value="linear">Linear Gradient</option><option value="radial">Radial Gradient</option></select></div>
-      <div class="field"><label>Eye Style (Corners)</label><select id="eyeS" onchange="QF.S.eye=this.value;QF.onInput()"><option value="square" selected>Square (Default)</option><option value="rounded">Rounded</option><option value="leaf">Leaf</option></select></div>
+      <div class="field"><label>Eye Style (Corners)</label><select id="eyeS" onchange="QF.S.eye=this.value;QF.onInput()"><option value="square" selected>Square (Default)</option><option value="rounded">Rounded</option><option value="leaf">Leaf</option><option value="shield">Shield</option></select></div>
     </div>
     <div class="field-row" style="margin-bottom:10px">
       <div class="field"><label>Foreground</label><div class="clr-wrap" onclick="this.querySelector('input').click()"><input type="color" id="fgC" value="#000000" onchange="QF.updClr()"><span class="clr-v" id="fgH">#000000</span></div></div>
       <div class="field" id="fg2Wrap" style="display:none"><label>Gradient End</label><div class="clr-wrap" onclick="this.querySelector('input').click()"><input type="color" id="fgC2" value="#000000" onchange="QF.updClr()"><span class="clr-v" id="fgH2">#000000</span></div></div>
-      <div class="field"><label>Background</label><div class="clr-wrap" onclick="this.querySelector('input').click()"><input type="color" id="bgC" value="#FFFFFF" onchange="QF.updClr()"><span class="clr-v" id="bgH">#FFFFFF</span></div></div>
+      <div class="field"><label>Background</label><div class="clr-wrap" onclick="this.querySelector('input').click()"><input type="color" id="bgC" value="#FFFFFF" onchange="QF.updClr()"><span class="clr-v" id="bgH">#FFFFFF</span></div>
+        <label style="display:flex;align-items:center;gap:4px;font-size:10px;margin-top:6px;cursor:pointer;color:var(--txt-l)"><input type="checkbox" id="bgTrans" onchange="QF.updClr()"> Transparent</label>
+      </div>
     </div>
     <div class="field"><label>Data Dot Style</label><div class="dot-grid" id="dotGrid"></div></div></div>
   <div class="card"><div class="card-t">Logo Overlay</div>

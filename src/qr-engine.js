@@ -182,6 +182,10 @@ export function renderQR(data, cvs, size, fgType, fg, fg2, bg, style, eyeStyle, 
       rrp(c, x + m/2, y + m/2, s - m, s - m, m * 2, 0, m * 2, 0);
       c.stroke();
       rrect(c, x + m*2, y + m*2, m*3, m*3, m * 1.2, 0, m * 1.2, 0);
+    } else if (eyeStyle === 'shield') {
+      rrp(c, x + m/2, y + m/2, s - m, s - m, m * 1.5, m * 1.5, m * 2.5, m * 2.5);
+      c.stroke();
+      rrect(c, x + m*2, y + m*2, m*3, m*3, m * 0.5, m * 0.5, m * 1.5, m * 1.5);
     } else {
       c.strokeRect(x + m/2, y + m/2, s - m, s - m);
       c.fillRect(x + m*2, y + m*2, m*3, m*3);
@@ -247,8 +251,25 @@ export function buildData(type) {
   };
 
   switch (type) {
-    case 'url':
-      return v('url');
+    case 'url': {
+      let base = v('url');
+      if (!base) return '';
+      if (!/^https?:\/\//i.test(base)) base = 'https://' + base;
+      const src = v('utm_source'), med = v('utm_medium'), cmp = v('utm_campaign'), trm = v('utm_term');
+      if (src || med || cmp || trm) {
+        try {
+          const u = new URL(base);
+          if (src) u.searchParams.set('utm_source', src);
+          if (med) u.searchParams.set('utm_medium', med);
+          if (cmp) u.searchParams.set('utm_campaign', cmp);
+          if (trm) u.searchParams.set('utm_term', trm);
+          return u.toString();
+        } catch (e) {
+          // Fallback if base URL parsing fails
+        }
+      }
+      return base;
+    }
     case 'text':
       return v('text');
     case 'wifi': {
@@ -273,6 +294,18 @@ export function buildData(type) {
       if (!n) return '';
       const m = v('sms-msg');
       return m ? `sms:${n}?body=${encodeURIComponent(m)}` : `sms:${n}`;
+    }
+    case 'whatsapp': {
+      const p = v('wa-phone').replace(/\D/g, '');
+      if (!p) return '';
+      const m = v('wa-msg');
+      return m ? `https://wa.me/${p}?text=${encodeURIComponent(m)}` : `https://wa.me/${p}`;
+    }
+    case 'telegram': {
+      const u = v('tg-user').replace('@', '');
+      if (!u) return '';
+      const m = v('tg-msg');
+      return m ? `https://t.me/${u}?text=${encodeURIComponent(m)}` : `https://t.me/${u}`;
     }
     case 'vcard': {
       const fn = v('vc-first');
@@ -483,6 +516,9 @@ export function generateSVG(data, size, fgType, fg, fg2, bg, dot, eyeStyle, ecl,
     } else if (eyeStyle === 'leaf') {
       e += `<path d="${rRectPath(x + m/2, y + m/2, s - m, s - m, m*2, 0, m*2, 0)}" fill="none" stroke="url(#fg)" stroke-width="${m.toFixed(2)}"/>`;
       e += `<path d="${rRectPath(x + m*2, y + m*2, m*3, m*3, m*1.2, 0, m*1.2, 0)}"/>`;
+    } else if (eyeStyle === 'shield') {
+      e += `<path d="${rRectPath(x + m/2, y + m/2, s - m, s - m, m*1.5, m*1.5, m*2.5, m*2.5)}" fill="none" stroke="url(#fg)" stroke-width="${m.toFixed(2)}"/>`;
+      e += `<path d="${rRectPath(x + m*2, y + m*2, m*3, m*3, m*0.5, m*0.5, m*1.5, m*1.5)}"/>`;
     } else {
       e += `<rect x="${(x + m/2).toFixed(2)}" y="${(y + m/2).toFixed(2)}" width="${(s - m).toFixed(2)}" height="${(s - m).toFixed(2)}" fill="none" stroke="url(#fg)" stroke-width="${m.toFixed(2)}"/>`;
       e += `<rect x="${(x + m*2).toFixed(2)}" y="${(y + m*2).toFixed(2)}" width="${(m*3).toFixed(2)}" height="${(m*3).toFixed(2)}"/>`;
@@ -503,7 +539,7 @@ export function generateSVG(data, size, fgType, fg, fg2, bg, dot, eyeStyle, ecl,
 
   let frameBgSVG = '';
   if (frameStyle === 'bottom') {
-    frameBgSVG = `<rect width="${cw}" height="${ch}" fill="${esc(bg)}"/>`;
+    if (bg !== 'transparent') frameBgSVG = `<rect width="${cw}" height="${ch}" fill="${esc(bg)}"/>`;
   } else if (frameStyle === 'polaroid') {
     frameBgSVG = `<rect width="${cw}" height="${ch}" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="2"/>`;
   } else if (frameStyle === 'badge') {
@@ -512,14 +548,16 @@ export function generateSVG(data, size, fgType, fg, fg2, bg, dot, eyeStyle, ecl,
       <path d="M${Math.round(cw * 0.25+size*0.04)},0 L${Math.round(cw * 0.75-size*0.04)},0 Q${Math.round(cw * 0.75)},0 ${Math.round(cw * 0.75)},${Math.round(size * 0.04)} L${Math.round(cw * 0.75)},${Math.round(size * 0.2)} L${Math.round(cw * 0.25)},${Math.round(size * 0.2)} L${Math.round(cw * 0.25)},${Math.round(size * 0.04)} Q${Math.round(cw * 0.25)},0 ${Math.round(cw * 0.25+size*0.04)},0 Z" fill="url(#fg)"/>
     `;
   } else {
-    frameBgSVG = `<rect width="${cw}" height="${ch}" fill="${esc(bg)}"/>`;
+    if (bg !== 'transparent') frameBgSVG = `<rect width="${cw}" height="${ch}" fill="${esc(bg)}"/>`;
   }
 
   let qrBgSVG = '';
-  if (frameStyle === 'badge') {
-    qrBgSVG = `<rect x="${ox}" y="${oy}" width="${size}" height="${size}" rx="${Math.round(size * 0.05)}" fill="${esc(bg)}"/>`;
-  } else {
-    qrBgSVG = `<rect x="${ox}" y="${oy}" width="${size}" height="${size}" fill="${esc(bg)}"/>`;
+  if (bg !== 'transparent') {
+    if (frameStyle === 'badge') {
+      qrBgSVG = `<rect x="${ox}" y="${oy}" width="${size}" height="${size}" rx="${Math.round(size * 0.05)}" fill="${esc(bg)}"/>`;
+    } else {
+      qrBgSVG = `<rect x="${ox}" y="${oy}" width="${size}" height="${size}" fill="${esc(bg)}"/>`;
+    }
   }
 
   let fs = '';

@@ -99,6 +99,19 @@ export function renderForm(state, onInput) {
       h += `<input type="${esc(f.type)}" id="f-${esc(f.id)}" placeholder="${esc(f.ph)}" oninput="QF.onInput()">`;
     h += `</div>`;
   });
+  
+  if (state.type === 'url') {
+    h += `<details class="utm-builder" style="margin-top: 10px; background: var(--bg-sec); padding: 8px; border-radius: 8px; border: 1px solid var(--bd);">
+      <summary style="cursor: pointer; font-size: 0.85em; color: var(--accent);">+ Add UTM Tags (Optional)</summary>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem;">
+        <input type="text" id="f-utm_source" placeholder="Source (e.g. google)" oninput="QF.onInput()" style="font-size: 0.8em; padding: 6px; border: 1px solid var(--bd); border-radius: 4px; background: var(--bg); color: var(--txt);">
+        <input type="text" id="f-utm_medium" placeholder="Medium (e.g. cpc)" oninput="QF.onInput()" style="font-size: 0.8em; padding: 6px; border: 1px solid var(--bd); border-radius: 4px; background: var(--bg); color: var(--txt);">
+        <input type="text" id="f-utm_campaign" placeholder="Campaign" oninput="QF.onInput()" style="font-size: 0.8em; padding: 6px; border: 1px solid var(--bd); border-radius: 4px; background: var(--bg); color: var(--txt);">
+        <input type="text" id="f-utm_term" placeholder="Term" oninput="QF.onInput()" style="font-size: 0.8em; padding: 6px; border: 1px solid var(--bd); border-radius: 4px; background: var(--bg); color: var(--txt);">
+      </div>
+    </details>`;
+  }
+
   $('formArea').innerHTML = h;
 }
 
@@ -130,6 +143,7 @@ export function renderEclRow(state) {
 export function updClr(state) {
   $('fgH').textContent = state.fg = $('fgC').value;
   $('bgH').textContent = state.bg = $('bgC').value;
+  if ($('bgTrans')) state.bgTrans = $('bgTrans').checked;
   if ($('fgC2')) $('fgH2').textContent = state.fg2 = $('fgC2').value;
   if ($('fg2Wrap')) $('fg2Wrap').style.display = state.fgType !== 'solid' ? 'block' : 'none';
   if (typeof QF !== 'undefined' && QF.onInput) QF.onInput();

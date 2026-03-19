@@ -9,6 +9,7 @@ const $ = (id) => document.getElementById(id);
 
 export let library = [];
 export let presets = [];
+export let history = [];
 let libFilter = 'all';
 let saveLock = false;
 let batchMode = false;
@@ -20,6 +21,8 @@ export function loadData() {
   if (Array.isArray(rawLib)) library = rawLib.map(valLib).filter(Boolean);
   const rawPre = DB.get('qr-presets');
   if (Array.isArray(rawPre)) presets = rawPre.map(valPre).filter(Boolean);
+  const rawHist = DB.get('qr-history');
+  if (Array.isArray(rawHist)) history = rawHist;
 }
 
 // ── Save to library ──
@@ -79,8 +82,17 @@ export function renderLib() {
 
   $('libStats').innerHTML = `<div class="lib-stat"><div class="sv">${library.length}</div><div class="sl">Total</div></div><div class="lib-stat"><div class="sv">${library.filter((i) => i.fav).length}</div><div class="sl">Favs</div></div><div class="lib-stat"><div class="sv">${new Set(library.map((i) => i.type)).size}</div><div class="sl">Types</div></div>`;
 
-  const types = ['all', 'fav', ...new Set(library.map((i) => i.type))];
-  $('libFilters').innerHTML = types.map((t) => `<button class="lib-filt${t === libFilter ? ' on' : ''}" onclick="QF.setFilter('${esc(t)}')">${t === 'all' ? 'All' : t === 'fav' ? '\u2B50 Favs' : esc(t.toUpperCase())}</button>`).join('');
+  const types = ['all', 'fav', 'history', ...new Set(library.map((i) => i.type))];
+  $('libFilters').innerHTML = types.map((t) => `<button class="lib-filt${t === libFilter ? ' on' : ''}" onclick="QF.setFilter('${esc(t)}')">${t === 'all' ? 'All' : t === 'fav' ? '\u2B50 Favs' : t === 'history' ? '\u23F2 History' : esc(t.toUpperCase())}</button>`).join('');
+
+  if (libFilter === 'history') {
+    if (!history.length) {
+      $('libGrid').innerHTML = `<div class="lib-empty"><div class="lib-empty-icon">\u23F2</div><div class="lib-empty-text">No history yet</div><div class="lib-empty-sub">Generate codes to see them here</div></div>`;
+      return;
+    }
+    $('libGrid').innerHTML = `<div class="lib-grid">${history.map((i) => `<div class="lib-card" onclick="QF.restoreHistory('${esc(i.id)}')"><div class="lib-card-thumb"><img src="${esc(i.thumb)}"></div><div class="lib-card-body"><div class="lib-card-name">Auto-saved</div><div class="lib-card-type" style="margin-top:2px">${esc(i.time)} &bull; ${esc((i.renderData.type||'').toUpperCase())}</div></div></div>`).join('')}</div>`;
+    return;
+  }
 
   if (!items.length) {
     $('libGrid').innerHTML = `<div class="lib-empty"><div class="lib-empty-icon">\u{1F4E6}</div><div class="lib-empty-text">${library.length === 0 ? 'No saved QR codes yet' : 'No matches'}</div><div class="lib-empty-sub">${library.length === 0 ? 'Generate and save from Create tab' : 'Try different search'}</div></div>`;
@@ -234,7 +246,7 @@ export function delItem(id) {
 export function savePreset() {
   const name = prompt('Preset name:', `${state.dot} ${state.fg}`);
   if (!name) return;
-  const p = valPre({ id: Date.now().toString(36), name, fg: state.fg, bg: state.bg, dot: state.dot, ecl: state.ecl, margin: state.margin, created: new Date().toISOString() });
+  const p = valPre({ id: Date.now().toString(36), name, fg: state.fg, bg: state.bg, bgTrans: state.bgTrans, dot: state.dot, ecl: state.ecl, margin: state.margin, created: new Date().toISOString() });
   if (!p) return;
   presets.unshift(p);
   DB.set('qr-presets', presets);
@@ -253,8 +265,9 @@ export function renderPresets() {
 export function applyPreset(id) {
   const p = presets.find((x) => x.id === id);
   if (!p) return;
-  state.fg = p.fg; state.bg = p.bg; state.dot = p.dot; state.ecl = p.ecl; state.margin = p.margin || 2;
+  state.fg = p.fg; state.bg = p.bg; state.bgTrans = p.bgTrans || false; state.dot = p.dot; state.ecl = p.ecl; state.margin = p.margin || 2;
   $('fgC').value = p.fg; $('bgC').value = p.bg;
+  if ($('bgTrans')) $('bgTrans').checked = state.bgTrans;
   import('./ui.js').then(({ updClr, setDotUI, setEclUI }) => {
     updClr(state);
     $('marginS').value = state.margin;
@@ -270,4 +283,65 @@ export function delPreset(id) {
   DB.set('qr-presets', presets);
   renderPresets();
   toast('Deleted');
+}
+
+export function saveToHistory(lastRender) {
+  if (!lastRender) return;
+  const tc = document.createElement('canvas');
+  try {
+    import('./qr-engine.js').then(({renderQR}) => {
+      renderQR(lastRender.data, tc, 200, lastRender.fgType || 'solid', lastRender.fg, lastRender.fg2, lastRender.bg, lastRender.dot, lastRender.eye || 'square', lastRender.ecl, lastRender.margin || 2, null, 'none', null);
+      const newHist = {
+        id: 'hst_' + Date.now().toString(36) + Math.random().toString(36).substring(2,5),
+        time: new Date().toLocaleTimeString(),
+        thumb: tc.toDataURL('image/png', 0.8),
+        renderData: { ...lastRender }
+      };
+      if(history.length && JSON.stringify(history[0].renderData) === JSON.stringify(newHist.renderData)) return; // skip dup
+      history.unshift(newHist);
+      if(history.length > 10) history = history.slice(0, 10);
+      DB.set('qr-history', history);
+      if(libFilter === 'history') renderLib();
+    });
+  } catch(e){}
+}
+
+export function restoreHistory(id) {
+  const h = history.find(x => x.id === id);
+  if(!h) return;
+  const r = h.renderData;
+  import('./main.js').then(m => {
+    m.setType(r.type);
+    const s = m.state;
+    Object.assign(s, r);
+    setTimeout(() => {
+        if(r.inputs) {
+            Object.entries(r.inputs).forEach(([k,v]) => {
+                const el = document.getElementById(k);
+                if(el) el.value = v;
+            });
+        }
+        const $ = id => document.getElementById(id);
+        if($('fgC')) $('fgC').value = s.fg;
+        if($('bgC')) $('bgC').value = s.bg;
+        if($('bgTrans')) $('bgTrans').checked = s.bgTrans || false;
+        if($('fgC2')) $('fgC2').value = s.fg2 || '#000000';
+        if($('fgType')) $('fgType').value = s.fgType || 'solid';
+        if($('eyeS')) $('eyeS').value = s.eye || 'square';
+        if($('frameS')) $('frameS').value = s.frameStyle || 'none';
+        if($('sizeS')) $('sizeS').value = s.size || 512;
+        if($('marginS')) $('marginS').value = s.margin || 2;
+        if($('frameTxt')) $('frameTxt').value = s.text || 'SCAN ME';
+        
+        import('./ui.js').then(ui => {
+          ui.updClr(s);
+          ui.setDotUI(s.dot);
+          ui.setEclUI(s.ecl);
+          ui.handleFrameUI();
+          m.generate();
+          ui.goTo('create');
+          ui.toast('History restored');
+        });
+    }, 50);
+  });
 }
