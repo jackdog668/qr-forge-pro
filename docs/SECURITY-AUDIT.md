@@ -1,4 +1,4 @@
-# QR Forge Pro - Security & Bug Audit Report
+# QrCody - Security & Bug Audit Report
 **Auditor:** Claude (Security Auditor Skill)
 **Date:** March 17, 2026
 **Scope:** Full client-side HTML/JS app (490 lines)

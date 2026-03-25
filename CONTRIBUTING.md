@@ -1,4 +1,4 @@
-# Contributing to QR Forge Pro
+# Contributing to QrCody
 
 Thanks for your interest in contributing! This project is open source under MIT license.
 

@@ -63,7 +63,7 @@ export async function handleCSV(e) {
   }
 
   const zip = new JSZip();
-  const folder = zip.folder("QR_Forge_Export");
+  const folder = zip.folder("QrCody_Export");
   
   const bs = Math.max(state.size, 512); 
   let valid = 0;

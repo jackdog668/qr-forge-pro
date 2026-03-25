@@ -1,7 +1,7 @@
 {
-  "name": "qr-forge-pro",
+  "name": "qrcody",
   "version": "2.0.0",
-  "description": "Unlimited, security-audited QR code generator. Zero subscriptions, never expire.",
+  "description": "QrCody — The QR coding buddy. Free, unlimited, security-audited QR code generator.",
   "author": "Desmond Baker Jr. <dbcreations>",
   "license": "MIT",
   "homepage": "https://github.com/jackdog668/qr-forge-pro",
@@ -17,7 +17,7 @@
     "wifi-qr",
     "vcard-qr",
     "bulk-qr",
-    "digital-alchemy"
+    "qrcody"
   ],
   "scripts": {
     "dev": "vite",
