@@ -171,7 +171,7 @@ export function exportLib() {
   if (!library.length) { toast('Nothing to export'); return; }
   const blob = new Blob([JSON.stringify(library, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
-  a.download = `qr-forge-library-${new Date().toISOString().slice(0, 10)}.json`;
+  a.download = `qrcody-library-${new Date().toISOString().slice(0, 10)}.json`;
   a.href = URL.createObjectURL(blob);
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);

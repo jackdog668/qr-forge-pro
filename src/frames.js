@@ -1,4 +1,4 @@
-// Frame Definitions for QR Forge Pro
+// Frame Definitions for QrCody
 
 export const FRAMES = [
   {

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to QR Forge Pro.
+All notable changes to QrCody.
 
 ## [2.0.0] - 2026-03-18
 

@@ -295,7 +295,7 @@ async function shareQR() {
     const blob = await new Promise((r) => $('qr-canvas').toBlob(r, 'image/png'));
     const file = new File([blob], 'qr-code.png', { type: 'image/png' });
     if (navigator.canShare?.({ files: [file] })) {
-      await navigator.share({ files: [file], title: 'QR Code', text: 'Generated with QR Forge Pro' });
+      await navigator.share({ files: [file], title: 'QR Code', text: 'Generated with QrCody' });
       toast('Shared!');
     } else {
       await copyQR();

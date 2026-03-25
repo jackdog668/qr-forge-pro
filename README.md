@@ -1,6 +1,6 @@
-# QR Forge Pro
+# QrCody
 
-**Unlimited QR codes. Zero subscriptions. Never expire.**
+**The QR coding buddy.**
 
 A full-featured, security-audited QR code generator that runs entirely client-side. No backend, no tracking, no expiration. Static QR codes encode data directly into the pattern; scan them in 10 years and they still work.
 
@@ -14,7 +14,7 @@ Built by [Digital Alchemy Academy](https://beacons.ai/dbcreations) as a free alt
 
 ## Features
 
-| Feature | Paid Services ($15.99/mo) | QR Forge Pro |
+| Feature | Paid Services ($15.99/mo) | QrCody |
 |---|---|---|
 | Static QR codes | Unlimited | **Unlimited** |
 | Dynamic QR codes | 250 (capped) | N/A (static = never expire) |

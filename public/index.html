@@ -3,22 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>QR Forge Pro - Free QR Code Generator</title>
+<title>QrCody - The QR Coding Buddy</title>
 <!-- SEO + Social -->
-<meta name="description" content="Unlimited QR codes. Zero subscriptions. Never expire. Free, open-source, security-audited QR code generator with logo overlay, bulk generation, and offline support.">
+<meta name="description" content="QrCody — The QR coding buddy. Free, open-source QR code generator with logo overlay, bulk generation, and offline support.">
 <meta name="author" content="Digital Alchemy Academy">
-<meta property="og:title" content="QR Forge Pro - Free QR Code Generator">
-<meta property="og:description" content="Unlimited QR codes. Zero subscriptions. Never expire. 8 content types, 4 dot styles, logo overlay, bulk gen, QR scanner.">
+<meta property="og:title" content="QrCody - The QR Coding Buddy">
+<meta property="og:description" content="QrCody — The QR coding buddy. 8 content types, 4 dot styles, logo overlay, bulk gen, QR scanner.">
 <meta property="og:type" content="website">
 <meta property="og:image" content="/icon-512.png">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="QR Forge Pro">
-<meta name="twitter:description" content="Free, security-audited QR code generator. No subscriptions, no expiration.">
+<meta name="twitter:title" content="QrCody">
+<meta name="twitter:description" content="QrCody — The QR coding buddy. Free QR code generator. No subscriptions, no expiration.">
 <!-- PWA -->
 <meta name="theme-color" content="#40FF78">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="QR Forge">
+<meta name="apple-mobile-web-app-title" content="QrCody">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/icon-192.png">
 <link rel="icon" type="image/png" href="/icon-192.png">
@@ -207,11 +207,11 @@ input[type=color]::-webkit-color-swatch-wrapper{padding:0}input[type=color]::-we
 </head>
 <body>
 <div class="offline-bar" id="offlineBar">&#x26A0; Offline Mode</div>
-<div class="app-loading" id="appLoading"><div class="spinner"></div><div class="load-text">Loading QR Forge Pro...</div></div>
+<div class="app-loading" id="appLoading"><div class="spinner"></div><div class="load-text">Loading QrCody...</div></div>
 
 <!-- CREATE -->
 <div class="page" id="pg-create">
-  <div class="pg-header"><div class="logo-box"></div><div><div class="pg-title">QR <span>Forge</span> Pro</div><div class="pg-sub">Create // Static // Forever</div></div></div>
+  <div class="pg-header"><div class="logo-box"></div><div><div class="pg-title">Qr<span>Cody</span></div><div class="pg-sub">The QR Coding Buddy</div></div></div>
   <div class="pwa-banner" id="pwaBanner"><span>&#x1F4F2; Install as app for offline use</span><button onclick="QF.installPWA()">Install</button><button class="pwa-dismiss" onclick="QF.dismissPWA()">&#x2715;</button></div>
   <!-- #4 Templates -->
   <div class="card"><div class="card-t">Quick Templates</div><div class="tpl-grid" id="tplGrid"></div></div>
@@ -444,7 +444,7 @@ function dlSVG(){if(!lastRender)return;const{data,size,fg,bg,dot,ecl,margin,fram
 async function copyQR(){if(!lastRender)return;try{const blob=await new Promise(r=>$('qr-canvas').toBlob(r,'image/png'));await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);toast('Copied!')}catch{toast('Copy failed')}}
 async function shareQR(){if(!lastRender)return;
   try{const blob=await new Promise(r=>$('qr-canvas').toBlob(r,'image/png'));const file=new File([blob],'qr-code.png',{type:'image/png'});
-    if(navigator.canShare?.({files:[file]})){await navigator.share({files:[file],title:'QR Code',text:'Generated with QR Forge Pro'});toast('Shared!')}
+    if(navigator.canShare?.({files:[file]})){await navigator.share({files:[file],title:'QR Code',text:'Generated with QrCody'});toast('Shared!')}
     else{await copyQR()}}catch{await copyQR()}}
 
 // Library
@@ -479,7 +479,7 @@ function batchDownload(){if(!selected.size)return;library.filter(i=>selected.has
   setTimeout(()=>{const a=document.createElement('a');a.download=`${item.name.replace(/[^a-zA-Z0-9]/g,'_')}.png`;a.href=c.toDataURL('image/png');a.click()},idx*200)});toast(`Downloading ${selected.size} files`)}
 
 // #3 Export/Import
-function exportLib(){if(!library.length){toast('Nothing to export');return}const blob=new Blob([JSON.stringify(library,null,2)],{type:'application/json'});const a=document.createElement('a');a.download=`qr-forge-library-${new Date().toISOString().slice(0,10)}.json`;a.href=URL.createObjectURL(blob);a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000);toast(`Exported ${library.length} codes`)}
+function exportLib(){if(!library.length){toast('Nothing to export');return}const blob=new Blob([JSON.stringify(library,null,2)],{type:'application/json'});const a=document.createElement('a');a.download=`qrcody-library-${new Date().toISOString().slice(0,10)}.json`;a.href=URL.createObjectURL(blob);a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000);toast(`Exported ${library.length} codes`)}
 async function importLib(e){const file=e.target.files[0];if(!file)return;try{const text=await file.text();const data=JSON.parse(text);if(!Array.isArray(data)){toast('Invalid file');return}
   const valid=data.map(valLib).filter(Boolean);const newIds=new Set(library.map(i=>i.id));const added=valid.filter(v=>!newIds.has(v.id));library=[...added,...library];
   await DB.set('qr-library',library);renderLib();toast(`Imported ${added.length} new codes`)}catch{toast('Import failed: invalid JSON')}e.target.value=''}
